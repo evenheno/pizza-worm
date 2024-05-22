@@ -4,7 +4,7 @@ import { ResourceManager } from "./resource-manager";
 
 export namespace PizzaWorm {
     const WORM_COLORS = ["#006400", "#228B22", "#32CD32", "#ADFF2F", "#FFFF00"];
-    const WORM_THICKNESS = 6;
+    const WORM_THICKNESS = 5;
     const SPEED = 1;
     const PIZZA_RADIUS = 15;
     const TURNING_SPEED = Math.PI / 36;
