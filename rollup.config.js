@@ -20,8 +20,7 @@ export default {
         drop_console: true, // Remove console statements
         drop_debugger: true, // Remove debugger statements
         collapse_vars: true,
-        keep_classnames: false,
-        keep_fargs: false
+        keep_classnames: false
       },
       mangle: {
         toplevel: true, // Mangle top level variable names

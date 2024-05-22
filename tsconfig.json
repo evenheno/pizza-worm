@@ -3,12 +3,12 @@
     "outDir": "./dist",
     "sourceMap": true,
     "noImplicitAny": true,
-    "module": "esnext",
+    "module": "ES2015",
     "target": "es5",
     "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": false
   },
   "include": ["src/**/*"]
 }

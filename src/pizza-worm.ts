@@ -24,6 +24,11 @@ export namespace PizzaWorm {
             this.init();
         }
 
+        public fullScreen() {
+            if (!this.canvas.requestFullscreen) return;
+            this.canvas.requestFullscreen();
+        }
+
         private initVars(): void {
             this.canvas = document.getElementById("canvas") as HTMLCanvasElement;
             this.ctx = this.canvas.getContext("2d")!;
@@ -83,10 +88,11 @@ export namespace PizzaWorm {
             this.draw();
         }
 
-        private startGame(): void {
+        public start(fullScreen?: boolean): void {
             if (!this.pizza || !this.worm || !this.canvas) return;
             this.pizza.place(this.worm, this.canvas.width, this.canvas.height);
             setInterval(() => this.gameTick(), 1000 / 60);
+            if (fullScreen) this.fullScreen();
         }
 
         private init() {
@@ -97,7 +103,7 @@ export namespace PizzaWorm {
                     { name: "pizza", src: "assets/pizza.png" },
                 ];
                 this.resourceManager.load(resources, () => {
-                    this.startGame();
+                    this.start();
                 });
             });
         }
