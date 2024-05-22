@@ -99,7 +99,7 @@ export namespace PizzaWorm {
             document.addEventListener("DOMContentLoaded", () => {
                 this.initVars();
                 const resources = [
-                    { name: "backdrop", src: "assets/backdrop.png" },
+                    { name: "backdrop", src: "assets/backdrop.gif" },
                     { name: "pizza", src: "assets/pizza.png" },
                 ];
                 this.resourceManager.load(resources, () => {
