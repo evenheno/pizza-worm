@@ -6,7 +6,8 @@
   "scripts": {
     "start": "live-server --open=/dist",
     "build": "rm -rf dist && rollup -c && cp -r ./resources/* ./dist",
-    "build:start": "npm run build && npm run start"
+    "build:start": "npm run build && npm run start",
+    "summary": "node scripts/summary"
   },
   "author": "",
   "license": "ISC",

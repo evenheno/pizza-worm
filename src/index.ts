@@ -1,7 +1,10 @@
-import { PizzaWorm } from "./pizza-worm";
-const pizzaWorm = new PizzaWorm.Game();
-pizzaWorm.start();
+import { PizzaWormGame } from "./pizza-worm";
+import { TPizzaWormStartOptions } from "./types";
 
-(window as any).fsc = () => {
-    pizzaWorm.fullScreen();
+window.start = async (container: HTMLCanvasElement, options: TPizzaWormStartOptions) => {
+    console.log('Starting pizza worm..');
+    const instance = new PizzaWormGame(container);
+    await instance.initialize();
+    await instance.start({ fullScreen: options?.fullScreen });
+    console.log('Pizza worm started.');
 }

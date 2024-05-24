@@ -10,5 +10,5 @@
     "moduleResolution": "node",
     "esModuleInterop": false
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "engix"]
 }

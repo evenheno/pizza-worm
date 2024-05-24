@@ -1,7 +1,7 @@
 export namespace GameObjects {
     export class Pizza {
         public position: TPosition | null = null;
-
+        
         constructor(private radius: number) { }
 
         private getRandomPosition(canvasWidth: number, canvasHeight: number): TPosition {
