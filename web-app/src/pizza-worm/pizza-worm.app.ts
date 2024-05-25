@@ -38,7 +38,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
             this.drawText('GAME OVER', 'Center', { fontSize: 27 });
             this.drawText(`Total Score: ${this._score}`, 'Center', { offset: [0, 60], fontSize: 17 });
             this.drawText(`Avg. Eating Period: ${this.getAverageEatingPeriod()} Seconds`, 'Center', { offset: [0, 90], fontSize: 13 });
-       }
+        }
     }
 
     protected override update(): void {
@@ -59,7 +59,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
         const debugInfo = [
             `FPS: ${this.fps}`,
             `POS: ${head}`,
-            `RT ${this.runtime}`,
+            `RT ${Math.round(this.runtime)}`,
             `DFC ${Constants.DIFFICULTY}`,
             `P_RAD ${this.pizza.radius}`,
             `AVG_EP ${this.getAverageEatingPeriod()}S`

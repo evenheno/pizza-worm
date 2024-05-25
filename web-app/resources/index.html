@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pizza Worm</title>
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-<style>
+  <style>
     @font-face {
       font-family: "DOSFont";
       src: url("assets/font.ttf") format("truetype");
@@ -55,8 +55,10 @@
   <canvas id="elCanvas" width="1024" height="768"></canvas>
   <script src="pworm.min.js"></script>
   <script>
+
     document.addEventListener('DOMContentLoaded', () => {
       const elCanvas = document.getElementById('elCanvas');
+
       const aspectRatio = elCanvas.width / elCanvas.height;
       const padding = 40;
       function resizeCanvas() {

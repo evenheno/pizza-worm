@@ -14,7 +14,11 @@ window.start = async (target: HTMLCanvasElement | string, options: TPizzaWormSta
 
     console.log('Initializing.');
     await instance.start({ fullScreen: options?.fullScreen });
-    
+
+    container.addEventListener('dblclick', () => {
+        instance.fullScreen();
+    })
+
     console.log('Game is running.');
 }
 
