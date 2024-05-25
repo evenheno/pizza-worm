@@ -19,7 +19,7 @@ export default {
     nodeResolve(),
     commonjs(),
     typescript({ tsconfig: 'tsconfig.json' }),
-    terser({
+    /*terser({
       compress: {
         passes: 15, // Apply multiple passes to achieve better compression
         //drop_console: true, // Remove console statements
@@ -36,6 +36,6 @@ export default {
       output: {
         comments: false, // Remove all comments
       }
-    }),
+    }),*/
   ],
 };

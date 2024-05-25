@@ -1,4 +1,4 @@
-import { TPizzaWormStartOptions } from "./types";
+import { TPizzaWormStartOptions } from "./src/pizza-worm/types";
 
 declare global {
     interface Window {

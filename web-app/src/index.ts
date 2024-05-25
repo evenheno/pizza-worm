@@ -1,6 +1,7 @@
-import { GameApp } from "./game-app";
-import { TPizzaWormStartOptions } from "./types";
-import { Util } from "./util";
+
+import { PizzaWorm } from "./pizza-worm/pizza-worm.app";
+import { TPizzaWormStartOptions } from "./pizza-worm/types";
+import { Util } from "./pizza-worm/util";
 
 window.start = async (target: HTMLCanvasElement | string, options: TPizzaWormStartOptions) => {
     console.log('Starting pizza worm.');
@@ -9,11 +10,11 @@ window.start = async (target: HTMLCanvasElement | string, options: TPizzaWormSta
     if (!container) throw Error('Canvas element container required');
 
     console.log('Creating game instance.')
-    const instance = new GameApp(container);
+    const instance = new PizzaWorm(container);
 
     console.log('Initializing.');
-    await instance.initialize();
     await instance.start({ fullScreen: options?.fullScreen });
+    
     console.log('Game is running.');
 }
 

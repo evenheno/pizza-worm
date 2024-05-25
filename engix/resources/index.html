@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Worm Game</title>
+  <title>Pizza Worm</title>
   <style>
     @font-face {
       font-family: "DOSFont";
@@ -28,7 +28,6 @@
     }
 
     @keyframes blink {
-
       0%,
       100% {
         opacity: 1;
@@ -40,7 +39,6 @@
     }
 
     @keyframes fadeInOut {
-
       0%,
       100% {
         opacity: 1;
@@ -80,7 +78,7 @@
 
 <body>
   <button id="elStartButton" onclick="init()">Start Game</button>
-  <canvas id="elCanvas" width="320" height="240"></canvas>
+  <canvas id="elCanvas" width="1024" height="0"></canvas>
   <script src="engix.min.js"></script>
   <script>
     const elCanvas = document.getElementById('elCanvas');

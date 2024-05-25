@@ -1,4 +1,4 @@
-import { TResources, TResource } from "./types";
+import { TResources, TResource } from "../pizza-worm/types";
 
 export class ResourceManager<T extends string> {
     private resources: TResources = {};
@@ -6,8 +6,8 @@ export class ResourceManager<T extends string> {
     async load(resources: TResource<T>[]) {
         console.log('Loading resources.');
         let resourcesLoaded = 0;
-
         const loadResource = (resource: TResource<T>): Promise<void> => {
+            console.log(`Loading resource: "${resource.name}"`, resource.src);
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
@@ -16,12 +16,17 @@ export class ResourceManager<T extends string> {
                     this.resources[resource.name] = img;
                     resolve();
                 };
-                img.onerror = reject;
+                img.onerror = (error) => {
+                    reject(Error(`Failed to load image resource: ${error}`));
+                }
                 img.src = resource.src;
             });
         };
-
-        await Promise.all(resources.map(loadResource));
+        try {
+            await Promise.all(resources.map(loadResource));
+        } catch (error) {
+            throw Error(`Failed to load resources: ${error}`);
+        }
     }
 
 
