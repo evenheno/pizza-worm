@@ -10,7 +10,7 @@ export default {
     name: 'pworm',
     file: 'dist/pworm.min.js',
     format: 'esm',
-    sourcemap: true,
+    sourcemap: false,
     globals: {
       engix: 'engix'
     }
@@ -19,23 +19,36 @@ export default {
     nodeResolve(),
     commonjs(),
     typescript({ tsconfig: 'tsconfig.json' }),
-    /*terser({
+    terser({
       compress: {
-        passes: 15, // Apply multiple passes to achieve better compression
-        //drop_console: true, // Remove console statements
-        //drop_debugger: true, // Remove debugger statements
+        passes: 35,
+        drop_console: true,
+        drop_debugger: true,
         collapse_vars: true,
-        keep_classnames: false
+        keep_classnames: false,
+        arrows: true,
+        booleans: true,
+        arguments: true,
+        dead_code: true,
+        hoist_vars: true,
+        hoist_props: true,
+        hoist_funs: true,
+        properties: true
       },
       mangle: {
-        toplevel: true, // Mangle top level variable names
+        keep_classnames: false,
+        keep_fnames: false,
+        module: true,
+        toplevel: true,
         properties: {
-          regex: /^_/ // Mangle properties that start with an underscore
+          regex: /^_/
         }
       },
       output: {
-        comments: false, // Remove all comments
+        comments: false,
+        semicolons: false,
+        braces: false
       }
-    }),*/
+    }),
   ],
 };
