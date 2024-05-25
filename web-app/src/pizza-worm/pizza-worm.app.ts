@@ -4,7 +4,7 @@ import { Pizza } from "./game-objects/pizza.go";
 import { Worm } from "./game-objects/worm.go";
 import { TVector2D } from "./types";
 
-export type TResourceID = 'pizza' | 'backdrop';
+export type TResourceID = 'pizza-pepperoni' | 'pizza-mushrooms' | 'backdrop';
 
 export class PizzaWorm extends GameApp<TResourceID> {
     private _score: number = 0;
@@ -34,13 +34,11 @@ export class PizzaWorm extends GameApp<TResourceID> {
         this.drawScore();
 
         if (this.isGameOver) {
-            this.drawOverlay({ alpha: 0.7 });
-            this.drawText('GAME OVER', 'Center', { fontSize: 20 });
-            this.drawText([
-                `Total Score: ${this._score}`,
-                `Average Eating Time: ${this.getAverageEatTime()} Seconds`
-            ], 'Center', { offset: [0, 30], fontSize: 17 });
-        }
+            this.drawOverlay({ alpha: 0.65 });
+            this.drawText('GAME OVER', 'Center', { fontSize: 27 });
+            this.drawText(`Total Score: ${this._score}`, 'Center', { offset: [0, 60], fontSize: 17 });
+            this.drawText(`Avg. Eating Period: ${this.getAverageEatingPeriod()} Seconds`, 'Center', { offset: [0, 90], fontSize: 13 });
+       }
     }
 
     protected override update(): void {
@@ -62,9 +60,9 @@ export class PizzaWorm extends GameApp<TResourceID> {
             `FPS: ${this.fps}`,
             `POS: ${head}`,
             `RT ${this.runtime}`,
-            `DIF ${Constants.DIFFICULTY}`,
-            `PIZ_RAD ${this.pizza.radius}`,
-            `AVG_ET ${this.getAverageEatTime()}S`
+            `DFC ${Constants.DIFFICULTY}`,
+            `P_RAD ${this.pizza.radius}`,
+            `AVG_EP ${this.getAverageEatingPeriod()}S`
         ];
 
         this.drawText(debugInfo.join(' | '), 'BottomRight', { offset: [10, 10], fontSize: 9 });
@@ -110,7 +108,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
         this._isGameOver = true;
     }
 
-    private getAverageEatTime(): number {
+    private getAverageEatingPeriod(): number {
         if (this._pizzaEatenCount === 0) return 0;
         return Math.round((this._totalEatTime / this._pizzaEatenCount));
     }

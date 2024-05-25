@@ -8,7 +8,9 @@
     "build": "rm -rf dist && rollup -c && cp -r ./resources/* ./dist",
     "build:start": "npm run build && npm run start",
     "summary": "node scripts/summary",
-    "zip": "sh scripts/zip.sh"
+    "zip": "sh scripts/zip.sh",
+    "deploy": "sh scripts/deploy.sh",
+    "connect": "sh scripts/connect.sh"
   },
   "author": "",
   "license": "ISC",

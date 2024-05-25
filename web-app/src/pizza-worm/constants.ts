@@ -12,6 +12,7 @@ export namespace Constants {
     export const TURNING_SPEED = (Math.PI / 36) * DIFFICULTY;
     export const RESOURCES: TResource<TResourceID>[] = [
         { name: "backdrop", src: "assets/backdrop.gif" },
-        { name: "pizza", src: "assets/pizza.png" },
+        { name: "pizza-pepperoni", src: "assets/pizza-pepperoni.gif" },
+        { name: "pizza-mushrooms", src: "assets/pizza-mushrooms.gif" }
     ];
 }
