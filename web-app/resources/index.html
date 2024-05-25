@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Worm Game</title>
+  <style>
+    @font-face {
+      font-family: "DOSFont";
+      src: url("assets/font.ttf") format("truetype");
+    }
+
+    html,
+    body {
+      font-size: 1em;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeInOut {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    #elStartButton {
+      padding: 0.5em;
+      font-size: inherit;
+      color: #ffffff;
+      background: linear-gradient(45deg, #ff0000, #ff8c00);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: "DOSFont", sans-serif;
+      text-transform: uppercase;
+      animation: blink 1s infinite, fadeInOut 2s infinite alternate;
+      box-shadow: 0 0 0.5em rgba(255, 140, 0, 0.8);
+    }
+
+    #elCanvas {
+      image-rendering: optimizeQuality;
+      width: 100%;
+      height: 100%;
+
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="elCanvas"></canvas>
+  <script src="pworm.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const elCanvas = document.getElementById('elCanvas');
+      async function init() {
+        try {
+          console.log('Starting pizza worm..');
+          await start(elCanvas);
+          console.log('Game started.');
+        } catch (error) {
+          console.error(`Failed to start pizza worm: ${error}`);
+        }
+      }
+      init();
+    });
+  </script>
+</body>
+
+</html>
