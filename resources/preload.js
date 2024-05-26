@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       console.log('Loading..');
       setStatus('Loading..');
-      await pizzaWorm.start();
+      await pizzaWorm.start({ fullScreen: true });
 
       loader.style.display = 'none';
       return pizzaWorm;
