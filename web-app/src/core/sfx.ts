@@ -93,22 +93,26 @@ export class SFX {
       currentTime += note.duration * beatDuration;
     });
   }
+
+  public async playStream(url: string, volume: number = 1, loop: boolean = false) {
+    try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+
+        const source = this.audioContext.createBufferSource();
+        const gainNode = this.audioContext.createGain();
+
+        source.buffer = audioBuffer;
+        source.loop = loop; // Enable looping if specified
+        gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
+
+        source.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+
+        source.start(0);
+    } catch (error) {
+        console.error('Error loading audio stream:', error);
+    }
 }
-
-(window as any).melody = () => {
-  // Example usage:
-  const sfx = new SFX();
-
-  const melody = [
-    { frequency: 261.63, duration: 1 }, // C4
-    { frequency: 293.66, duration: 1 }, // D4
-    { frequency: 329.63, duration: 1 }, // E4
-    { frequency: 349.23, duration: 1 }, // F4
-    { frequency: 392.00, duration: 1 }, // G4
-    { frequency: 440.00, duration: 1 }, // A4
-    { frequency: 493.88, duration: 1 }, // B4
-    { frequency: 523.25, duration: 2 }, // C5
-  ];
-
-  sfx.playMelody(melody, 120);
 }

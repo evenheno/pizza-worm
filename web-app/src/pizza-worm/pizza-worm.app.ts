@@ -25,6 +25,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
         this._gfxBackdrop = this.resource.get('backdrop');
         this._worm = new Worm(this);
         this.generatePizza();
+        this.sfx.playStream('assets/music.mp3', 0.7, true);
     }
 
     protected override draw(): void {
