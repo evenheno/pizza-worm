@@ -46,19 +46,8 @@ export class InputManager {
         });
     }
 
-    isTurningLeft(): boolean {
-        return !!this.keyMap['ArrowLeft'];
-    }
-
-    isTurningRight(): boolean {
-        return !!this.keyMap['ArrowRight'];
-    }
-
-    isAnyKey(): boolean {
-        return Object.values(this.keyMap).some(value => value);
-    }
-
-    isEnter(): boolean {
-        return !!this.keyMap['Enter'];
-    }
+    isTurningLeft(): boolean { return !!this.keyMap['ArrowLeft']; }
+    isTurningRight(): boolean { return !!this.keyMap['ArrowRight']; }
+    isAnyKey(): boolean { return Object.values(this.keyMap).some(value => value); }
+    isEnter(): boolean { return !!this.keyMap['Enter']; }
 }

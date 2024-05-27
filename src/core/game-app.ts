@@ -1,11 +1,15 @@
 import { InputManager } from "./input-manager";
 import { ResourceManager } from "./resource-manager";
-
 import { SfxManager } from "./sfx-manager";
 import { CoreTypes } from "./core.type";
 import { Types } from "../pizza-worm/pizza-worm.type";
 
 export class GameApp<TResourceID extends string> {
+    private _lastFrameTime: number = 0;
+    private _fps: number = 0;
+    private _frameCount: number = 0;
+    private _fpsTime: number = 0;
+    private _startTime: number = 0;
     private _input: InputManager;
     private _resource: ResourceManager<TResourceID>;
     private _container: HTMLCanvasElement;
@@ -14,27 +18,21 @@ export class GameApp<TResourceID extends string> {
     private _sfx: SfxManager = new SfxManager();
     private _state: CoreTypes.TGameState;
     private _resources?: CoreTypes.TResource<TResourceID>[];
-    private _lastFrameTime: number = 0;
-    private _fps: number = 0;
-    private _frameCount: number = 0;
-    private _fpsTime: number = 0;
-    private _startTime: number = 0; // New variable to store the start time
+    private _runtime: number;
 
-    public get resource() { return this._resource }
+    public get fps() { return this._fps }
     public get ctx() { return this._ctx; }
     public get sfx() { return this._sfx; }
     public get input() { return this._input; }
+    public get state() { return this._state; }
     public get screen() { return this._screen }
-    public get fps() { return this._fps }
-    public get runtime() { return performance.now() - this._startTime; } // New getter to calculate runtime
-
-    public get state() {
-        return this._state;
-    }
+    public get runtime() { return this._runtime }
+    public get resource() { return this._resource }
 
     public constructor(container: HTMLCanvasElement, resources: CoreTypes.TResource<TResourceID>[]) {
         try {
             if (!container) throw Error('Target container required.');
+            this._runtime = 0;
             this._resources = resources;
             this._container = container;
             this._resource = new ResourceManager();
@@ -84,10 +82,10 @@ export class GameApp<TResourceID extends string> {
     }
 
     protected drawOverlay(options?: { alpha?: number, color?: string }) {
-        this._ctx.globalAlpha = options?.alpha || 1;
-        this._ctx.fillStyle = options?.color || '#000000';
         const w = this._screen.width;
         const h = this._screen.height;
+        this._ctx.globalAlpha = options?.alpha || 1;
+        this._ctx.fillStyle = options?.color || '#000000';
         this._ctx.fillRect(0, 0, w, h);
         this._ctx.globalAlpha = 1;
     }
@@ -111,7 +109,7 @@ export class GameApp<TResourceID extends string> {
             opacity?: number
         }
     ) {
-        const { width: screenWidth, height: screenHeight } = this._screen;
+        const screen = this._screen;
         const fontSize = options?.fontSize || 13;
 
         this._ctx.globalAlpha = options?.opacity || 1;
@@ -119,28 +117,28 @@ export class GameApp<TResourceID extends string> {
         this._ctx.font = `${fontSize}px "DOSFont"`;
 
         const lines = Array.isArray(text) ? text : [text];
-        const lineHeight = fontSize * 1.2; // Adjust line height as needed
+        const lineHeight = fontSize * 1.2;
 
-        const measure = this.measureText(lines[0]); // Measure the first line
+        const measure = this.measureText(lines[0]);
         const offset = options?.offset || [0, 0];
 
         let targetPosition: CoreTypes.TVector2D = { x: 0, y: 0 };
 
         switch (position) {
             case 'center':
-                targetPosition.x = (screenWidth / 2) - (measure.width / 2) + offset[0];
-                targetPosition.y = (screenHeight / 2) - ((lines.length - 1) * lineHeight / 2) + offset[1];
+                targetPosition.x = (screen.width / 2) - (measure.width / 2) + offset[0];
+                targetPosition.y = (screen.height / 2) - ((lines.length - 1) * lineHeight / 2) + offset[1];
                 break;
             case 'bottom-left':
                 targetPosition.x = offset[0];
-                targetPosition.y = screenHeight - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
+                targetPosition.y = screen.height - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
                 break;
             case 'bottom-right':
-                targetPosition.x = screenWidth - measure.width - offset[0];
-                targetPosition.y = screenHeight - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
+                targetPosition.x = screen.width - measure.width - offset[0];
+                targetPosition.y = screen.height - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
                 break;
             case 'top-right':
-                targetPosition.x = screenWidth - measure.width - offset[0];
+                targetPosition.x = screen.width - measure.width - offset[0];
                 targetPosition.y = measure.ascent + offset[1];
                 break;
             case 'top-left':
@@ -157,9 +155,13 @@ export class GameApp<TResourceID extends string> {
         this._ctx.globalAlpha = 1;
     }
 
+    private updateRuntime() {
+        this._runtime = (performance.now() - this._startTime);
+    }
+
     private gameLoop(): void {
         try {
-            const now = performance.now();
+            const now = this.runtime;
             const delta = now - this._lastFrameTime;
             this._lastFrameTime = now;
             this._frameCount++;
@@ -169,11 +171,10 @@ export class GameApp<TResourceID extends string> {
                 this._frameCount = 0;
                 this._fpsTime = 0;
             }
-
             this.update();
             this.draw();
-
             requestAnimationFrame(this.gameLoop.bind(this));
+            this.updateRuntime();
         } catch (error) {
             this.setGameState('crashed')
             const exception = Error(`Runtime error: ${error}`);

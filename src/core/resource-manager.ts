@@ -37,15 +37,15 @@ export class ResourceManager<T extends string> {
 
     private async loadGfxResource(resource: CoreTypes.TResource<T>): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => handleError();
+            img.src = resource.url;
+
             const handleError = () => {
                 const exception = new Error(`Failed to load image resource: ${resource.url}`);
                 reject(exception);
             };
-
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = handleError;
-            img.src = resource.url;
         });
     }
 
