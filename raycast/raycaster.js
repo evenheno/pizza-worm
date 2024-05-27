@@ -46,7 +46,7 @@ window.addEventListener('DOMContentLoaded', () => {
     async function render() {
         const width = canvas.width;
         const height = canvas.height;
-        const halfHeight = height / 2;
+        const halfHeight = height / 3;
         context.clearRect(0, 0, width, height);
 
         context.fillStyle = 'blue';
@@ -59,14 +59,14 @@ window.addEventListener('DOMContentLoaded', () => {
             const colorIntensity = 255 / (1 + dist);
             context.fillStyle = `rgb(${colorIntensity}, ${colorIntensity / 2}, ${colorIntensity / 2})`;
             context.fillRect(i, halfHeight - wallHeight / 2, 1, wallHeight);
-            if (dist < 20) {
+            /*if (dist < 20) {
                 const hitX = player.x + Math.cos(angle) * dist;
                 const hitY = player.y + Math.sin(angle) * dist;
                 const blockX = Math.floor(hitX);
                 const blockY = Math.floor(hitY);
                 const wallX = hitX - blockX;
                 const wallY = hitY - blockY; 
-            }
+            }*/
         }
     }
 
