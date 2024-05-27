@@ -1,8 +1,9 @@
 import { InputManager } from "./input-manager";
 import { ResourceManager } from "./resource-manager";
-import { TPizzaWormStartOptions } from "../pizza-worm/pizza-worm.type";
+
 import { SfxManager } from "./sfx-manager";
 import { CoreTypes } from "./core.type";
+import { Types } from "../pizza-worm/pizza-worm.type";
 
 export class GameApp<TResourceID extends string> {
     private _input: InputManager;
@@ -38,7 +39,7 @@ export class GameApp<TResourceID extends string> {
             this._container = container;
             this._resource = new ResourceManager();
             this._input = new InputManager();
-            this._state = 'Idle';
+            this._state = 'idle';
             this._screen = { width: 1024, height: 768 }
             this._ctx = this._container.getContext("2d")!;
             this._ctx.imageSmoothingEnabled = false;
@@ -65,7 +66,7 @@ export class GameApp<TResourceID extends string> {
             return;
         }
         console.log(`Loading resources..`);
-        this.setGameState('LoadingRes');
+        this.setGameState('loading-res');
         await this._resource.load(this._resources);
     }
 
@@ -126,23 +127,23 @@ export class GameApp<TResourceID extends string> {
         let targetPosition: CoreTypes.TVector2D = { x: 0, y: 0 };
 
         switch (position) {
-            case 'Center':
+            case 'center':
                 targetPosition.x = (screenWidth / 2) - (measure.width / 2) + offset[0];
                 targetPosition.y = (screenHeight / 2) - ((lines.length - 1) * lineHeight / 2) + offset[1];
                 break;
-            case 'BottomLeft':
+            case 'bottom-left':
                 targetPosition.x = offset[0];
                 targetPosition.y = screenHeight - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
                 break;
-            case 'BottomRight':
+            case 'bottom-right':
                 targetPosition.x = screenWidth - measure.width - offset[0];
                 targetPosition.y = screenHeight - measure.descent - offset[1] - (lines.length - 1) * lineHeight;
                 break;
-            case 'TopRight':
+            case 'top-right':
                 targetPosition.x = screenWidth - measure.width - offset[0];
                 targetPosition.y = measure.ascent + offset[1];
                 break;
-            case 'TopLeft':
+            case 'top-left':
                 targetPosition.x = offset[0];
                 targetPosition.y = measure.ascent + offset[1];
                 break;
@@ -174,30 +175,30 @@ export class GameApp<TResourceID extends string> {
 
             requestAnimationFrame(this.gameLoop.bind(this));
         } catch (error) {
-            this.setGameState('Crashed')
+            this.setGameState('crashed')
             const exception = Error(`Runtime error: ${error}`);
             console.error(exception)
             throw exception;
         }
     }
 
-    public async start(options?: TPizzaWormStartOptions) {
+    public async start(options?: Types.StartOptions) {
         try {
             console.log('Starting application.', options);
-            this.setGameState('LoadingRes')
+            this.setGameState('loading-res')
             await this.loadResources();
-            this.setGameState('Initializing');
+            this.setGameState('initializing');
             try {
                 console.log('Initializing.');
                 await this.initialize();
             } catch (error) {
                 throw Error(`Initialization failed: ${error}`);
             }
-            this.setGameState('Ready');
+            this.setGameState('ready');
             this._startTime = performance.now();
             this._lastFrameTime = performance.now();
             this.gameLoop();
-            this.setGameState('Running')
+            this.setGameState('running')
             if (options?.fullScreen) this.fullScreen();
 
             console.log('Application started.');

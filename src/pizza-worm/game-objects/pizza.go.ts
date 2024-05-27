@@ -3,16 +3,19 @@ import { PizzaWorm } from "../pizza-worm.app";
 import { CoreTypes } from '../../core';
 
 export class Pizza {
-    public position: CoreTypes.TVector2D;
-    public radius: number
+    private _position: CoreTypes.TVector2D;
+    private _radius: number
     private app: PizzaWorm;
     private gfx: HTMLImageElement[];
     private currentGfx: HTMLImageElement;
 
+    public get radius() { return this._radius; }
+    public get position() { return this._position; }
+
     constructor(game: PizzaWorm, position: CoreTypes.TVector2D, radius: number) {
         this.app = game;
-        this.radius = radius;
-        this.position = position;
+        this._radius = radius;
+        this._position = position;
         this.gfx = [
             this.app.resource.get("pizza-pepperoni"),
             this.app.resource.get("pizza-mushrooms")
@@ -22,10 +25,10 @@ export class Pizza {
 
     draw() {
         const ctx = this.app.ctx;
-        const x = this.position.x - this.radius;
-        const y = this.position.y - this.radius;
-        const w = this.radius * 2;
-        const h = this.radius * 2;
+        const x = this._position.x - this._radius;
+        const y = this._position.y - this._radius;
+        const w = this._radius * 2;
+        const h = this._radius * 2;
 
         ctx.drawImage(this.currentGfx, x, y, w, h);
     }

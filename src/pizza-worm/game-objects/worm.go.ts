@@ -1,17 +1,16 @@
-import { Constants } from "../pizza-worm.const";
 import { InputManager } from "../../core/input-manager";
 import { PizzaWorm } from "../pizza-worm.app";
-import { TSegment } from "../pizza-worm.type";
 import { CoreTypes } from "../../core";
+import { Types } from "../pizza-worm.type";
+import { Constants } from "../pizza-worm.const";
 
 export class Worm {
-    public turningLeft: boolean;
-    public turningRight: boolean;
-
-    private segments: TSegment[];
     private angle: number;
     private length: number;
     private colorIndex: number;
+    private turningLeft: boolean;
+    private turningRight: boolean;
+    private segments: Types.WormSegment[];
 
     public get position(): CoreTypes.TVector2D {
         const head = this.segments[this.segments.length - 1];
@@ -36,7 +35,7 @@ export class Worm {
         }
     }
 
-    private createSegment(x: number, y: number): TSegment {
+    private createSegment(x: number, y: number): Types.WormSegment {
         return { x: x, y: y, color: this.getNextColor() };
     }
 
@@ -65,7 +64,7 @@ export class Worm {
         });
     }
 
-    public collidesWith(position: CoreTypes.TVector2D, radius: number): boolean {
+    public checkCollision(position: CoreTypes.TVector2D, radius: number): boolean {
         return this.segments.some(segment => {
             const distance = Math.hypot(segment.x - position.x, segment.y - position.y);
             return distance < Constants.WORM_THICKNESS / 2 + radius;
@@ -97,7 +96,7 @@ export class Worm {
     private detectPizzaCollision(): void {
         const pizzaPos = this.game.pizza.position;
         const pizzaRadius = this.game.pizza.radius;
-        const hasCollision = this.collidesWith(pizzaPos, pizzaRadius);
+        const hasCollision = this.checkCollision(pizzaPos, pizzaRadius);
         if (hasCollision) { this.game.onEat(); }
     }
 

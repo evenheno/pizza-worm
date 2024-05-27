@@ -1,14 +1,19 @@
-export type TDomIds = 'canvas';
+export namespace Types {
 
-export type TPizzaWormStartOptions = {
-    fullScreen: boolean
+    export type StartOptions = {
+        fullScreen: boolean
+    }
+
+    export type WormSegment = {
+        x: number;
+        y: number;
+        color: string;
+    };
+
+    export type ResourceID =
+        | 'pizza-pepperoni'
+        | 'pizza-mushrooms'
+        | 'backdrop'
+        | 'background-music';
+
 }
-
-export type TSegment = {
-    x: number;
-    y: number;
-    color: string;
-};
-
-export type TResourceID = 'pizza-pepperoni' | 'pizza-mushrooms' | 'backdrop' | 'background-music';
-

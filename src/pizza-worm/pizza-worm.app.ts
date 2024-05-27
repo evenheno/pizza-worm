@@ -1,9 +1,9 @@
 import { CoreTypes, GameApp } from "../core";
-import { Constants } from "./pizza-worm.const";
 import { Pizza, Worm } from "./game-objects";
-import { TResourceID } from "./pizza-worm.type";
+import { Constants } from "./pizza-worm.const";
+import { Types } from "./pizza-worm.type";
 
-export class PizzaWorm extends GameApp<TResourceID> {
+export class PizzaWorm extends GameApp<Types.ResourceID> {
     private _score: number = 0;
     private _worm: Worm;
     private _pizza: Pizza;
@@ -39,9 +39,9 @@ export class PizzaWorm extends GameApp<TResourceID> {
 
         if (this.isGameOver) {
             this.drawOverlay({ alpha: 0.65 });
-            this.drawText('GAME OVER', 'Center', { fontSize: 27 });
-            this.drawText(`Total Score: ${this._score}`, 'Center', { offset: [0, 60], fontSize: 17 });
-            this.drawText(`Avg. Eating Period: ${this.getAverageEatingPeriod()} Seconds`, 'Center', { offset: [0, 90], fontSize: 13 });
+            this.drawText('GAME OVER', 'center', { fontSize: 27 });
+            this.drawText(`Total Score: ${this._score}`, 'center', { offset: [0, 60], fontSize: 17 });
+            this.drawText(`Avg. Eating Period: ${this.getAverageEatingPeriod()} Seconds`, 'center', { offset: [0, 90], fontSize: 13 });
         }
     }
 
@@ -51,7 +51,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
     }
 
     protected drawScore() {
-        this.drawText(`SCORE: ${this._score}`, 'TopLeft', { offset: [15, 15] });
+        this.drawText(`SCORE: ${this._score}`, 'top-left', { offset: [15, 15] });
 
         const wormPos = this._worm.position;
         const head = `${Math.round(wormPos.x)}x${Math.round(wormPos.y)}`;
@@ -65,8 +65,8 @@ export class PizzaWorm extends GameApp<TResourceID> {
             `AVG_EP ${this.getAverageEatingPeriod()}S`,
         ];
 
-        this.drawText(debugInfo.join(' | '), 'BottomRight', { offset: [10, 10], fontSize: 9 });
-        this.drawText('DEVELOPED BY OR EVEN HEN', 'BottomLeft', { offset: [10, 10], fontSize: 9, opacity: 0.3 });
+        this.drawText(debugInfo.join(' | '), 'bottom-right', { offset: [10, 10], fontSize: 9 });
+        this.drawText('DEVELOPED BY OR EVEN HEN', 'bottom-left', { offset: [10, 10], fontSize: 9, opacity: 0.3 });
     }
 
     public onEat() {
@@ -94,7 +94,7 @@ export class PizzaWorm extends GameApp<TResourceID> {
             let position: CoreTypes.TVector2D
             do {
                 position = { x: randomPos(this.screen.width), y: randomPos(this.screen.height) };
-                hasCollision = this.worm.collidesWith(position, radius);
+                hasCollision = this.worm.checkCollision(position, radius);
             } while (hasCollision);
 
             this._pizzaStartTime = Date.now();

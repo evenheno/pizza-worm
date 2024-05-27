@@ -1,5 +1,5 @@
 import { CoreTypes } from "../core";
-import { TResourceID } from "./pizza-worm.type";
+import { Types } from "./pizza-worm.type";
 
 export namespace Constants {
     export const DIFFICULTY = 1;
@@ -9,10 +9,10 @@ export namespace Constants {
     export const WORM_INIT_LEN = 50;
     export const PIZZA_RADIUS = [20, 60];
     export const TURNING_SPEED = (Math.PI / 36) * DIFFICULTY;
-    export const RESOURCES: CoreTypes.TResource<TResourceID>[] = [
-        { name: "backdrop", src: "assets/backdrop.gif", type: 'Gfx' },
-        { name: "pizza-pepperoni", src: "assets/pizza-pepperoni.gif", type: 'Gfx' },
-        { name: "pizza-mushrooms", src: "assets/pizza-mushrooms.gif", type: 'Gfx' },
-        { name: 'background-music', src: 'assets/background-music.mp3', type: 'Sfx' }
+    export const RESOURCES: CoreTypes.TResource<Types.ResourceID>[] = [
+        { name: "backdrop", url: "assets/backdrop.gif", type: 'gfx' },
+        { name: "pizza-pepperoni", url: "assets/pizza-pepperoni.gif", type: 'gfx' },
+        { name: "pizza-mushrooms", url: "assets/pizza-mushrooms.gif", type: 'gfx' },
+        { name: 'background-music', url: 'assets/background-music.mp3', type: 'sfx' }
     ];
 }
