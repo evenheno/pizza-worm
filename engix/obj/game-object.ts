@@ -4,28 +4,31 @@ import { BaseRenderer } from "../renderers/base-renderer";
 import { IGameEvent } from "../types";
 import { GameApp } from "../game-app";
 
-export class GameObject {
-    private componentManager: ComponentManager;
-    private app: GameApp;
+export class GameObject<T> {
+    private _app: GameApp;
+    private _component: ComponentManager;
+
+    public get app() { return this._app; }
+    public get component() { return this._component }
 
     constructor(app: GameApp) {
-        this.app = app;
+        this._app = app;
     }
 
-    public addComponent(id: string, component: ComponentBase): void {
-        this.componentManager.addComponent(id, component);
+    public addComponent<T extends ComponentBase>(id: string, component: T): void {
+        this._component.addComponent(id, component);
     }
 
     public getComponent<T extends ComponentBase>(type: new () => T): T {
-        return this.componentManager.getComponent<T>(type);
+        return this._component.getComponent<T>(type);
     }
 
     public onDraw(renderer: BaseRenderer): void {
-        this.componentManager.onDraw(renderer);
+        this._component.onDraw(renderer);
     }
 
     public onUpdate(deltaTime: number): void {
-        this.componentManager.onUpdate(deltaTime);
+        this._component.onUpdate(deltaTime);
     }
 
     public update(): void {
@@ -40,11 +43,11 @@ export class GameObject {
         // Cleanup the game object
     }
 
-    public onCollision(other: GameObject): void {
+    public onCollision(other: GameObject<T>): void {
         // Override this method in subclasses to handle collision logic
     }
 
     public handleEvent<T>(event: IGameEvent<T>): void {
-        this.componentManager.handleEvent(event);
+        this._component.handleEvent(event);
     }
 }

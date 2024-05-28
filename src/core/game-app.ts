@@ -1,8 +1,9 @@
 import { InputManager } from "./input-manager";
 import { ResourceManager } from "./resource-manager";
-import { SfxManager } from "./sfx-manager";
+import { SoundLib } from "./sfx-manager";
 import { CoreTypes } from "./core.type";
 import { Types } from "../pizza-worm/pizza-worm.type";
+import { GameObject } from "./game-object";
 
 export class GameApp<TResourceID extends string> {
     private _lastFrameTime: number = 0;
@@ -10,24 +11,26 @@ export class GameApp<TResourceID extends string> {
     private _frameCount: number = 0;
     private _fpsTime: number = 0;
     private _startTime: number = 0;
-    private _input: InputManager;
+    private _inputManager: InputManager;
     private _resource: ResourceManager<TResourceID>;
     private _container: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
     private _screen: CoreTypes.TSize;
-    private _sfx: SfxManager = new SfxManager();
+    private _sndLib: SoundLib = new SoundLib();
     private _state: CoreTypes.TGameState;
     private _resources?: CoreTypes.TResource<TResourceID>[];
     private _runtime: number;
+    private _gameObjects: GameObject<TResourceID>[];
 
     public get fps() { return this._fps }
     public get ctx() { return this._ctx; }
-    public get sfx() { return this._sfx; }
-    public get input() { return this._input; }
     public get state() { return this._state; }
     public get screen() { return this._screen }
     public get runtime() { return this._runtime }
-    public get resource() { return this._resource }
+    public get soundLib() { return this._sndLib; }
+    public get inputManager() { return this._inputManager; }
+    public get resourceManager() { return this._resource }
+    public get gameObjects() { return this._gameObjects }
 
     public constructor(container: HTMLCanvasElement, resources: CoreTypes.TResource<TResourceID>[]) {
         try {
@@ -36,7 +39,7 @@ export class GameApp<TResourceID extends string> {
             this._resources = resources;
             this._container = container;
             this._resource = new ResourceManager();
-            this._input = new InputManager();
+            this._inputManager = new InputManager();
             this._state = 'idle';
             this._screen = { width: 1024, height: 768 }
             this._ctx = this._container.getContext("2d")!;
@@ -171,8 +174,8 @@ export class GameApp<TResourceID extends string> {
                 this._frameCount = 0;
                 this._fpsTime = 0;
             }
-            this.update();
-            this.draw();
+            this.update(this._inputManager);
+            this.draw(this._ctx);
             requestAnimationFrame(this.gameLoop.bind(this));
             this.updateRuntime();
         } catch (error) {
@@ -191,7 +194,7 @@ export class GameApp<TResourceID extends string> {
             this.setGameState('initializing');
             try {
                 console.log('Initializing.');
-                await this.initialize();
+                await this.initialize(this.resourceManager);
             } catch (error) {
                 throw Error(`Initialization failed: ${error}`);
             }
@@ -208,7 +211,16 @@ export class GameApp<TResourceID extends string> {
         }
     }
 
-    protected initialize() { }
-    protected update() { }
-    protected draw() { }
+    protected initialize(resourceManager: ResourceManager<TResourceID>) {
+        this._gameObjects.forEach(go => go.initialize(resourceManager));
+    }
+
+    protected update(inputManager: InputManager) {
+        this._gameObjects.forEach(go => go.update(this._inputManager));
+    }
+
+    protected draw(ctx: CanvasRenderingContext2D) {
+        this._gameObjects.forEach(go => go.draw(this._ctx));
+    }
+
 }

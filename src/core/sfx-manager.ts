@@ -1,4 +1,4 @@
-export class SfxManager {
+export class SoundLib {
   private audioContext: AudioContext;
 
   constructor() {

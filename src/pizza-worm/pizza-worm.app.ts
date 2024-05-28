@@ -24,11 +24,11 @@ export class PizzaWorm extends GameApp<Types.ResourceID> {
     }
 
     protected override async initialize() {
-        this._gfxBackdrop = this.resource.get('backdrop');
-        this._backgroundMusic = this.resource.get('background-music');
+        this._gfxBackdrop = this.resourceManager.get('backdrop');
+        this._backgroundMusic = this.resourceManager.get('background-music');
         this._worm = new Worm(this);
         this.generatePizza();
-        this.sfx.playResource(this._backgroundMusic);
+        this.soundLib.playResource(this._backgroundMusic);
     }
 
     protected override draw(): void {
@@ -47,7 +47,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID> {
 
     protected override update(): void {
         if (this.isGameOver) return;
-        this._worm.update(this.input);
+        this._worm.update(this.inputManager);
     }
 
     protected drawScore() {

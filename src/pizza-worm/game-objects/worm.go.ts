@@ -1,10 +1,11 @@
 import { InputManager } from "../../core/input-manager";
 import { PizzaWorm } from "../pizza-worm.app";
-import { CoreTypes } from "../../core";
+import { CoreTypes, GameApp } from "../../core";
 import { Types } from "../pizza-worm.type";
 import { Constants } from "../pizza-worm.const";
+import { GameObject } from "../../core/game-object";
 
-export class Worm {
+export class Worm extends GameObject<Types.ResourceID> {
     private angle: number;
     private length: number;
     private colorIndex: number;
@@ -18,6 +19,7 @@ export class Worm {
     }
 
     constructor(private game: PizzaWorm) {
+        super(game);
         this.turningLeft = false;
         this.turningRight = false;
         this.segments = [];
@@ -45,7 +47,7 @@ export class Worm {
         return color;
     }
 
-    public update(inputManager: InputManager): void {
+    update(inputManager: InputManager): void {
         this.turningLeft = inputManager.isTurningLeft();
         this.turningRight = inputManager.isTurningRight();
         this.updateAngle(Constants.TURNING_SPEED);
