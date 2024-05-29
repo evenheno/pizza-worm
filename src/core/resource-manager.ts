@@ -39,13 +39,13 @@ export class ResourceManager<T extends string> {
         return new Promise((resolve, reject) => {
             const img = new Image();
             img.onload = () => resolve(img);
-            img.onerror = () => handleError();
+            img.onerror = () => {
+                const exception = new Error(`Failed to load GFX resource: ${resource.url}`);
+                reject(exception); 
+            }
             img.src = resource.url;
 
-            const handleError = () => {
-                const exception = new Error(`Failed to load image resource: ${resource.url}`);
-                reject(exception);
-            };
+  
         });
     }
 
