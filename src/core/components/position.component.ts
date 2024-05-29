@@ -1,16 +1,13 @@
 import { BaseComponent } from "./base-component";
-import { TVector2D } from "../../../engix/types";
 import { InputManager } from "../input-manager";
-
-export interface IPositionComponent {
-    position: TVector2D;
-}
+import { IPositionComponent } from "./position.component.type";
+import { CoreTypes } from "../core.type";
 
 export class PositionComponent<T extends string> extends BaseComponent<T> implements IPositionComponent {
-    private _position: TVector2D;
+    private _position: CoreTypes.TVector2D;
     public get position() { return this._position; }
 
-    constructor(position?: TVector2D) {
+    constructor(position?: CoreTypes.TVector2D) {
         super();
         this._position = position;
     }

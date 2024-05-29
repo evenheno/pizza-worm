@@ -1,19 +1,35 @@
+import { TPlaySfxOptions } from "./sfx-manager.type";
+
+export type TPlayFreqOptions = {
+  frequency: number,
+  duration: number,
+  volume?: number,
+  type?: OscillatorType,
+  delayTime?: number,
+  filterFrequency?: number,
+  detune?: number
+}
+
 export class SoundLib {
   private audioContext: AudioContext;
 
   constructor() {
+    this.initialize(); 
+  }
+
+  private initialize(){
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
   }
 
-  public playSound(
-    frequency: number,
-    duration: number,
-    type: OscillatorType = 'sine',
-    volume: number = 1,
-    delayTime: number = 0.05,
-    filterFrequency: number = 1500,
-    detune: number = 0
-  ) {
+  public playFreq(options: TPlayFreqOptions) {
+    const frequency = options.frequency;
+    const duration = options.duration;
+    const volume = options.volume !== undefined ? options.volume : 1;
+    const type = options.type !== undefined ? options.type : 'sine';
+    const delayTime = options.delayTime !== undefined ? options.delayTime : 0.05;
+    const filterFrequency = options.filterFrequency !== undefined ? options.filterFrequency : 1500;
+    const detune = options.detune !== undefined ? options.detune : 0;
+
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
     const delayNode = this.audioContext.createDelay();
@@ -40,10 +56,7 @@ export class SoundLib {
     oscillator.stop(this.audioContext.currentTime + duration);
   }
 
-  public playResource(
-    audioElement: HTMLAudioElement,
-    options?: { volume?: number; repeat?: boolean }
-  ) {
+  public playSfx(audioElement: HTMLAudioElement, options?: TPlaySfxOptions) {
     if (!audioElement) {
       throw Error('Invalid audio element provided');
     }
@@ -60,6 +73,7 @@ export class SoundLib {
 
     if (options?.repeat) {
       audioElement.loop = true;
+      
       audioElement.addEventListener('ended', function handler() {
         if (options?.repeat) {
           audioElement.loop = false;

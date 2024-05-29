@@ -27,46 +27,10 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (map[y][x] === "X") {
                     player.x = x + 0.5;
                     player.y = y + 0.5;
-                    map[y][x] = "0"; // Clear the starting position
+                    map[y][x] = "0";
                     return;
                 }
             }
-        }
-    }
-
-    async function loadImage(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = url;
-        });
-    }
-
-    async function render() {
-        const width = canvas.width;
-        const height = canvas.height;
-        const halfHeight = height / 3;
-        context.clearRect(0, 0, width, height);
-
-        context.fillStyle = 'blue';
-        context.fillRect(0, halfHeight, width, halfHeight);
-
-        for (let i = 0; i < width; i++) {
-            const angle = player.dir + player.fov * (i / width - 0.5);
-            const dist = castRay(player.x, player.y, angle);
-            const wallHeight = Math.min(halfHeight / dist, height);
-            const colorIntensity = 255 / (1 + dist);
-            context.fillStyle = `rgb(${colorIntensity}, ${colorIntensity / 2}, ${colorIntensity / 2})`;
-            context.fillRect(i, halfHeight - wallHeight / 2, 1, wallHeight);
-            /*if (dist < 20) {
-                const hitX = player.x + Math.cos(angle) * dist;
-                const hitY = player.y + Math.sin(angle) * dist;
-                const blockX = Math.floor(hitX);
-                const blockY = Math.floor(hitY);
-                const wallX = hitX - blockX;
-                const wallY = hitY - blockY; 
-            }*/
         }
     }
 
@@ -117,6 +81,30 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    async function render() {
+        const width = canvas.width;
+        const height = canvas.height;
+        const halfHeight = height / 2;
+        context.clearRect(0, 0, width, height);
+
+        // Paint the ceiling in light blue
+        context.fillStyle = 'lightblue';
+        context.fillRect(0, 0, width, halfHeight);
+
+        // Paint the floor
+        context.fillStyle = 'gray';
+        context.fillRect(0, halfHeight, width, halfHeight);
+
+        for (let i = 0; i < width; i++) {
+            const angle = player.dir + player.fov * (i / width - 0.5);
+            const dist = castRay(player.x, player.y, angle);
+            const wallHeight = Math.min(halfHeight / dist, height);
+            const colorIntensity = 255 / (1 + dist);
+            context.fillStyle = `rgb(${colorIntensity}, ${colorIntensity / 2}, ${colorIntensity / 2})`;
+            context.fillRect(i, halfHeight - wallHeight / 2, 1, wallHeight);
+        }
+    }
+
     function gameLoop() {
         updatePlayerPosition();
         render();
@@ -134,6 +122,7 @@ window.addEventListener('DOMContentLoaded', () => {
             keys[e.key] = false;
         }
     });
+
     initializePlayer();
     requestAnimationFrame(gameLoop);
 });

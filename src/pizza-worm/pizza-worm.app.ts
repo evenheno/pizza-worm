@@ -1,5 +1,6 @@
 import { CoreTypes, GameApp } from "../core";
 import { Pizza, Worm } from "./game-objects";
+import { Backdrop } from "./game-objects/backdrop.go";
 import { Constants } from "./pizza-worm.const";
 import { Types } from "./pizza-worm.type";
 
@@ -7,6 +8,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID> {
     private _score: number = 0;
     private _worm: Worm;
     private _pizza: Pizza;
+    private _backDrop: Backdrop;
     private _gfxBackdrop: HTMLImageElement;
     private _isGameOver: boolean = false;
     private _backgroundMusic: HTMLAudioElement;
@@ -27,16 +29,14 @@ export class PizzaWorm extends GameApp<Types.ResourceID> {
         this._gfxBackdrop = this.resourceManager.get('backdrop');
         this._backgroundMusic = this.resourceManager.get('background-music');
         this._worm = new Worm(this);
+        this._backDrop = new Backdrop(this);
         this.generatePizza();
-        this.soundLib.playResource(this._backgroundMusic);
+        this.soundLib.playSfx(this._backgroundMusic);
     }
 
     protected override draw(): void {
         this.drawGfx(this._gfxBackdrop, undefined, this.screen);
-        this._worm.draw();
-        this._pizza.draw();
         this.drawScore();
-
         if (this.isGameOver) {
             this.drawOverlay({ alpha: 0.65 });
             this.drawText('GAME OVER', 'center', { fontSize: 27 });

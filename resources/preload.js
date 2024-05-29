@@ -7,24 +7,30 @@ document.addEventListener('DOMContentLoaded', () => {
     instance.fullScreen();
   });
 
-  function setStatus(status) {
-    loader.innerHTML = status;
+  function setStatusMessage(statusMessage) {
+    console.log(`Status: ${statusMessage}`);
+    loader.innerHTML = statusMessage;
+  }
+
+  function setLoader(active) {
+    loader.style.display = active ? 'none' : 'flex';
+  }
+
+  function setLoaderAnim(active) {
+    loader.style.animation = active ? 'flicker' : undefined;
   }
 
   async function run() {
     try {
-      console.log('Initializing..');
-      setStatus('Initializing..');
-      const pizzaWorm = new PizzaWorm(container);
-
-      console.log('Loading..');
-      setStatus('Loading..');
-      await pizzaWorm.start({ fullScreen: true });
-
-      loader.style.display = 'none';
-      return pizzaWorm;
+      setStatusMessage('Initializing..');
+      const application = new PizzaWorm(container);
+      setStatusMessage('Starting application..');
+      await application.start({ fullScreen: true });
+      setLoader(false);
+      return application;
     } catch (error) {
-      console.error(`Failed to start pizza worm: ${error}`);
+      setLoaderAnim(false);
+      setStatusMessage(`FATAL ERROR: ${error}`);
     }
   }
 
@@ -34,5 +40,5 @@ document.addEventListener('DOMContentLoaded', () => {
     instance = await run();
   });
 
-  setStatus('Click To Start');
+  setStatusMessage('Click To Start');
 });

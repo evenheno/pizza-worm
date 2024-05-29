@@ -43,10 +43,8 @@ body::before {
 
 #loader {
     position: absolute;
-    width: 20em;
-    height: 10em;
-    left: calc(50% - 10em);
-    top: calc(50% - 5em);
+    width: 40%;
+    height: 100%;
     border-radius: 5px;
     color: rgb(180, 180, 180);
     display: flex;

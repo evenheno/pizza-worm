@@ -12,7 +12,7 @@ export class GameApp<TResourceID extends string> {
     private _fpsTime: number = 0;
     private _startTime: number = 0;
     private _inputManager: InputManager;
-    private _resource: ResourceManager<TResourceID>;
+    private _resourceManager: ResourceManager<TResourceID>;
     private _container: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
     private _screen: CoreTypes.TSize;
@@ -29,7 +29,7 @@ export class GameApp<TResourceID extends string> {
     public get runtime() { return this._runtime }
     public get soundLib() { return this._sndLib; }
     public get inputManager() { return this._inputManager; }
-    public get resourceManager() { return this._resource }
+    public get resourceManager() { return this._resourceManager }
     public get gameObjects() { return this._gameObjects }
 
     public constructor(container: HTMLCanvasElement, resources: CoreTypes.TResource<TResourceID>[]) {
@@ -38,7 +38,7 @@ export class GameApp<TResourceID extends string> {
             this._runtime = 0;
             this._resources = resources;
             this._container = container;
-            this._resource = new ResourceManager();
+            this._resourceManager = new ResourceManager();
             this._inputManager = new InputManager();
             this._state = 'idle';
             this._screen = { width: 1024, height: 768 }
@@ -68,7 +68,7 @@ export class GameApp<TResourceID extends string> {
         }
         console.log(`Loading resources..`);
         this.setGameState('loading-res');
-        await this._resource.load(this._resources);
+        await this._resourceManager.load(this._resources);
     }
 
     public fullScreen() {
@@ -180,7 +180,7 @@ export class GameApp<TResourceID extends string> {
             this.updateRuntime();
         } catch (error) {
             this.setGameState('crashed')
-            const exception = Error(`Runtime error: ${error}`);
+            const exception = Error(`Runtime Error: ${error}`);
             console.error(exception)
             throw exception;
         }
@@ -212,15 +212,34 @@ export class GameApp<TResourceID extends string> {
     }
 
     protected initialize(resourceManager: ResourceManager<TResourceID>) {
-        this._gameObjects.forEach(go => go.initialize(resourceManager));
+        try {
+            console.log('Initializing game app..');
+            for (let go of this._gameObjects) {
+                go.initialize(this._resourceManager);
+            }
+        } catch (error) {
+            throw Error(`Failed to initialize: ${error}`);
+        }
     }
 
     protected update(inputManager: InputManager) {
-        this._gameObjects.forEach(go => go.update(this._inputManager));
+        try {
+            for (let go of this._gameObjects) {
+                go.update(this._inputManager);
+            }
+        } catch (error) {
+            throw Error(`Failed to update: ${error}`);
+        }
     }
 
     protected draw(ctx: CanvasRenderingContext2D) {
-        this._gameObjects.forEach(go => go.draw(this._ctx));
+        try {
+            for (let go of this._gameObjects) {
+                go.draw(this._ctx);
+            }
+        } catch (error) {
+            throw Error(`Failed to draw: ${error}`);
+        }
     }
 
 }

@@ -11,7 +11,6 @@
     "esModuleInterop": false
   },
   "include": [
-    "engix/**/*",
     "src/**/*",
     "global.d.ts"
   ]

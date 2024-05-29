@@ -1,7 +1,7 @@
 export class InputManager {
-    private keyMap: { [key: string]: boolean } = {};
-    private touchStartX: number | null = null;
-    private touchStartY: number | null = null;
+    private _keyMap: { [key: string]: boolean } = {};
+    private _touchStartX: number | null = null;
+    private _touchStartY: number | null = null;
 
     constructor() {
         this.initialize();
@@ -13,41 +13,36 @@ export class InputManager {
     }
 
     private setupKeyboardListeners(): void {
-        document.addEventListener('keydown', (e) => {
-            this.keyMap[e.key] = true;
-        });
-
-        document.addEventListener('keyup', (e) => {
-            this.keyMap[e.key] = false;
-        });
+        document.addEventListener('keydown', (e) => this._keyMap[e.key] = true);
+        document.addEventListener('keyup', (e) => this._keyMap[e.key] = false);
     }
 
     private setupTouchListeners(): void {
         document.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
-            this.touchStartX = touch.clientX;
-            this.touchStartY = touch.clientY;
+            this._touchStartX = touch.clientX;
+            this._touchStartY = touch.clientY;
 
             const screenWidth = window.innerWidth;
-            if (this.touchStartX < screenWidth / 2) {
-                this.keyMap['ArrowLeft'] = true;
-                this.keyMap['ArrowRight'] = false;
+            if (this._touchStartX < screenWidth / 2) {
+                this._keyMap['ArrowLeft'] = true;
+                this._keyMap['ArrowRight'] = false;
             } else {
-                this.keyMap['ArrowRight'] = true;
-                this.keyMap['ArrowLeft'] = false;
+                this._keyMap['ArrowRight'] = true;
+                this._keyMap['ArrowLeft'] = false;
             }
         });
 
         document.addEventListener('touchend', (e) => {
-            this.touchStartX = null;
-            this.touchStartY = null;
-            this.keyMap['ArrowRight'] = false;
-            this.keyMap['ArrowLeft'] = false;
+            this._touchStartX = null;
+            this._touchStartY = null;
+            this._keyMap['ArrowRight'] = false;
+            this._keyMap['ArrowLeft'] = false;
         });
     }
 
-    isTurningLeft(): boolean { return !!this.keyMap['ArrowLeft']; }
-    isTurningRight(): boolean { return !!this.keyMap['ArrowRight']; }
-    isAnyKey(): boolean { return Object.values(this.keyMap).some(value => value); }
-    isEnter(): boolean { return !!this.keyMap['Enter']; }
+    isTurningLeft(): boolean { return !!this._keyMap['ArrowLeft']; }
+    isTurningRight(): boolean { return !!this._keyMap['ArrowRight']; }
+    isAnyKey(): boolean { return Object.values(this._keyMap).some(value => value); }
+    isEnter(): boolean { return !!this._keyMap['Enter']; }
 }
