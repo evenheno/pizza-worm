@@ -19,7 +19,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const mapHeight = map.length;
 
     let player = { x: 2.5, y: 2.5, dir: Math.PI / 4, fov: Math.PI / 3 };
-    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+    const keys = { ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, Shift: false };
 
     function initializePlayer() {
         for (let y = 0; y < mapHeight; y++) {
@@ -41,10 +41,10 @@ window.addEventListener('DOMContentLoaded', () => {
             const cx = Math.floor(x + cos * t);
             const cy = Math.floor(y + sin * t);
             if (cx < 0 || cy < 0 || cx >= mapWidth || cy >= mapHeight || map[cy][cx] === "1") {
-                return t;
+                return { dist: t, hitX: x + cos * t, hitY: y + sin * t };
             }
         }
-        return 20;
+        return { dist: 20, hitX: x + cos * 20, hitY: y + sin * 20 };
     }
 
     function canMoveTo(x, y) {
@@ -56,23 +56,44 @@ window.addEventListener('DOMContentLoaded', () => {
     function updatePlayerPosition() {
         const moveSpeed = 0.03;
         const turnSpeed = 0.04;
+        const strafeSpeed = 0.03;
 
         let newX = player.x;
         let newY = player.y;
 
         if (keys.ArrowUp) {
-            newX += Math.cos(player.dir) * moveSpeed;
-            newY += Math.sin(player.dir) * moveSpeed;
+            if (keys.Shift) {
+                newX += Math.cos(player.dir - Math.PI / 2) * strafeSpeed;
+                newY += Math.sin(player.dir - Math.PI / 2) * strafeSpeed;
+            } else {
+                newX += Math.cos(player.dir) * moveSpeed;
+                newY += Math.sin(player.dir) * moveSpeed;
+            }
         }
         if (keys.ArrowDown) {
-            newX -= Math.cos(player.dir) * moveSpeed;
-            newY -= Math.sin(player.dir) * moveSpeed;
+            if (keys.Shift) {
+                newX -= Math.cos(player.dir - Math.PI / 2) * strafeSpeed;
+                newY -= Math.sin(player.dir - Math.PI / 2) * strafeSpeed;
+            } else {
+                newX -= Math.cos(player.dir) * moveSpeed;
+                newY -= Math.sin(player.dir) * moveSpeed;
+            }
         }
         if (keys.ArrowLeft) {
-            player.dir -= turnSpeed;
+            if (keys.Shift) {
+                newX -= Math.cos(player.dir + Math.PI / 2) * strafeSpeed;
+                newY -= Math.sin(player.dir + Math.PI / 2) * strafeSpeed;
+            } else {
+                player.dir -= turnSpeed;
+            }
         }
         if (keys.ArrowRight) {
-            player.dir += turnSpeed;
+            if (keys.Shift) {
+                newX += Math.cos(player.dir + Math.PI / 2) * strafeSpeed;
+                newY += Math.sin(player.dir + Math.PI / 2) * strafeSpeed;
+            } else {
+                player.dir += turnSpeed;
+            }
         }
 
         if (canMoveTo(newX, newY)) {
@@ -81,27 +102,46 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const wallImage = new Image();
+    wallImage.src = 'wall.gif';
+    wallImage.onload = () => {
+        requestAnimationFrame(gameLoop);
+    };
+
     async function render() {
         const width = canvas.width;
         const height = canvas.height;
         const halfHeight = height / 2;
         context.clearRect(0, 0, width, height);
 
-        // Paint the ceiling in light blue
-        context.fillStyle = 'lightblue';
+        // Paint sky
+        context.fillStyle = 'rgb(5,5,10)';
         context.fillRect(0, 0, width, halfHeight);
 
         // Paint the floor
-        context.fillStyle = 'gray';
+        context.fillStyle = 'rgb(15,15,20)';
         context.fillRect(0, halfHeight, width, halfHeight);
 
         for (let i = 0; i < width; i++) {
             const angle = player.dir + player.fov * (i / width - 0.5);
-            const dist = castRay(player.x, player.y, angle);
+            const { dist, hitX } = castRay(player.x, player.y, angle);
             const wallHeight = Math.min(halfHeight / dist, height);
-            const colorIntensity = 255 / (1 + dist);
-            context.fillStyle = `rgb(${colorIntensity}, ${colorIntensity / 2}, ${colorIntensity / 2})`;
-            context.fillRect(i, halfHeight - wallHeight / 2, 1, wallHeight);
+            const textureX = Math.floor((hitX % 1) * wallImage.width);
+            const textureHeight = wallImage.height;
+
+            // Calculate the top and bottom of the wall slice
+            const wallTop = halfHeight - wallHeight / 2;
+            const wallBottom = halfHeight + wallHeight / 2;
+
+            // Draw wall with texture
+            if (dist < 20) {
+                context.drawImage(
+                    wallImage,
+                    textureX, 0, 1, textureHeight,
+                    i, wallTop,
+                    1, wallBottom - wallTop
+                );
+            }
         }
     }
 
@@ -112,17 +152,14 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('keydown', (e) => {
-        if (keys.hasOwnProperty(e.key)) {
-            keys[e.key] = true;
-        }
+        if (keys.hasOwnProperty(e.key)) keys[e.key] = true;
+        if (e.key === 'Shift') keys.Shift = true;
     });
 
     document.addEventListener('keyup', (e) => {
-        if (keys.hasOwnProperty(e.key)) {
-            keys[e.key] = false;
-        }
+        if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        if (e.key === 'Shift') keys.Shift = false;
     });
 
     initializePlayer();
-    requestAnimationFrame(gameLoop);
 });
