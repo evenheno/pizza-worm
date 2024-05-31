@@ -44,6 +44,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
             `AVG_EP ${this.getAverageEatingPeriod()}S`,
         ].join(' ');
 
+        this.drawText('Developed by Or Even Hen', 'bottom-left', { offset: [10, 10], fontSize: 12 })
         this.drawText(debugInfo, 'bottom-right', { offset: [10, 10], fontSize: 9 });
 
         if (this._gameOver) {
