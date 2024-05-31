@@ -4,10 +4,12 @@ import { SoundLib } from "./sfx-manager";
 import { CoreTypes } from "./core.type";
 import { Types } from "../pizza-worm/pizza-worm.type";
 import { GameObject } from "./game-object";
+import { Logger } from "./logger";
 
-export class GameApp<TResourceID extends string> {
+export abstract class GameApp<TResourceID extends string, TGameObjectID extends string> {
     private _lastFrameTime: number = 0;
     private _fps: number = 0;
+    private _runtime: number;
     private _frameCount: number = 0;
     private _fpsTime: number = 0;
     private _startTime: number = 0;
@@ -16,25 +18,27 @@ export class GameApp<TResourceID extends string> {
     private _container: HTMLCanvasElement;
     private _ctx: CanvasRenderingContext2D;
     private _screen: CoreTypes.TSize;
-    private _sndLib: SoundLib = new SoundLib();
+    private _soundLib: SoundLib = new SoundLib();
     private _state: CoreTypes.TGameState;
     private _resources?: CoreTypes.TResource<TResourceID>[];
-    private _runtime: number;
-    private _gameObjects: GameObject<TResourceID>[];
+    private _gameObjects: Map<TGameObjectID, GameObject<TResourceID, TGameObjectID>>;
+    private _logger: Logger;
 
     public get fps() { return this._fps }
-    public get ctx() { return this._ctx; }
+    //public get ctx() { return this._ctx; }
     public get state() { return this._state; }
     public get screen() { return this._screen }
     public get runtime() { return this._runtime }
-    public get soundLib() { return this._sndLib; }
-    public get inputManager() { return this._inputManager; }
-    public get resourceManager() { return this._resourceManager }
-    public get gameObjects() { return this._gameObjects }
+    public get soundLib() { return this._soundLib; }
+    protected get logger() { return this._logger; }
+    //public get inputManager() { return this._inputManager; }
+    //public get resourceManager() { return this._resourceManager }
+    //public get gameObjects() { return this._gameObjects }
 
     public constructor(container: HTMLCanvasElement, resources: CoreTypes.TResource<TResourceID>[]) {
         try {
             if (!container) throw Error('Target container required.');
+            this._logger = new Logger('GameApp');
             this._runtime = 0;
             this._resources = resources;
             this._container = container;
@@ -44,44 +48,24 @@ export class GameApp<TResourceID extends string> {
             this._screen = { width: 1024, height: 768 }
             this._ctx = this._container.getContext("2d")!;
             this._ctx.imageSmoothingEnabled = false;
+            this._gameObjects = new Map();
         } catch (error) {
             throw Error(`Failed to initialize application: ${error}`);
         }
     }
 
-    public drawGfx(
-        image: HTMLImageElement, position: CoreTypes.TVector2D = { x: 0, y: 0 },
-        size: CoreTypes.TSize = { width: image.width, height: image.height }) {
-        const drawSize: CoreTypes.TSize = size != undefined ? size : { width: image.width, height: image.height };
-        this._ctx.drawImage(image, position.x, position.y, drawSize.width, drawSize.height);
+    public addObject(id: TGameObjectID, gameObject: GameObject<TResourceID, TGameObjectID>) {
+        this._logger.log('Adding game object.', id);
+        this._gameObjects.set(id, gameObject);
     }
 
-    public setGameState(state: CoreTypes.TGameState) {
-        this._state = state;
-        console.log('State changed', state);
+    public removeObject(id: TGameObjectID): void {
+        this._logger.log('Removing game object.', id);
+        this._gameObjects.delete(id);
     }
 
-    public async loadResources() {
-        if (!this._resources?.length) {
-            console.info('No resources to load provided, skipping resource load.');
-            return;
-        }
-        console.log(`Loading resources..`);
-        this.setGameState('loading-res');
-        await this._resourceManager.load(this._resources);
-    }
-
-    public fullScreen() {
-        console.log('Activating full-screen.');
-        if (!this._container.requestFullscreen) {
-            console.warn('Browser does not support full-screen');
-            return;
-        }
-        try {
-            this._container.requestFullscreen();
-        } catch (error) {
-            console.warn(`Failed to set full-screen: ${error}`);
-        }
+    public getObject<T>(id: TGameObjectID): T {
+        return this._gameObjects.get(id) as unknown as T;
     }
 
     protected drawOverlay(options?: { alpha?: number, color?: string }) {
@@ -158,11 +142,7 @@ export class GameApp<TResourceID extends string> {
         this._ctx.globalAlpha = 1;
     }
 
-    private updateRuntime() {
-        this._runtime = (performance.now() - this._startTime);
-    }
-
-    private gameLoop(): void {
+    private _mainLoop(): void {
         try {
             const now = this.runtime;
             const delta = now - this._lastFrameTime;
@@ -174,10 +154,10 @@ export class GameApp<TResourceID extends string> {
                 this._frameCount = 0;
                 this._fpsTime = 0;
             }
-            this.update(this._inputManager);
-            this.draw(this._ctx);
-            requestAnimationFrame(this.gameLoop.bind(this));
-            this.updateRuntime();
+            this._update(this._inputManager);
+            this._draw(this._ctx);
+            this._runtime = (performance.now() - this._startTime);
+            requestAnimationFrame(this._mainLoop.bind(this));
         } catch (error) {
             this.setGameState('crashed')
             const exception = Error(`Runtime Error: ${error}`);
@@ -186,60 +166,136 @@ export class GameApp<TResourceID extends string> {
         }
     }
 
+    private _update(inputManager: InputManager) {
+        try {
+            const keys = Array.from(this._gameObjects.keys());
+            for (const key of keys) {
+                const gameObject = this._gameObjects.get(key as TGameObjectID);
+                if (gameObject?.enableUpdate) {
+                    gameObject.update(inputManager);
+                }
+            }
+            this.onUpdate(inputManager);
+        } catch (error) {
+            throw new Error(`Failed to update: ${error}`);
+        }
+    }
+
+    private _draw(ctx: CanvasRenderingContext2D) {
+        try {
+            const keys = Array.from(this._gameObjects.keys());
+            for (const key of keys) {
+                const gameObject = this._gameObjects.get(key as TGameObjectID);
+                if (gameObject) {
+                    gameObject.draw(ctx);
+                }
+            }
+            this.onDraw(ctx);
+        } catch (error) {
+            throw new Error(`Failed to draw game object: ${error}`);
+        }
+    }
+
+    private async _start() {
+        try {
+            this._logger.log('Starting game objects.');
+            const keys = Array.from(this._gameObjects.keys());
+            for (const key of keys) {
+                const gameObject = this._gameObjects.get(key as TGameObjectID);
+                if (gameObject) {
+                    this._logger.log('Starting game object.', gameObject.id);
+                    await gameObject.start();
+                }
+            }
+            this._logger.log('Game objects started.');
+        } catch (error) {
+            throw new Error(`Failed to start game object: ${error}`);
+        }
+    }
+
+    private async _initGameObject() {
+        const keys = this._gameObjects.keys();
+        this._logger.log('Initializing game objects.', keys);
+        const gameObjectsArray = Array.from(this._gameObjects.values());
+        const promises = gameObjectsArray.map(async (gameObject) => {
+            this._logger.log('Initializing game object.', gameObject.id);
+            await gameObject.initialize(this._resourceManager);
+        });
+        await Promise.all(promises);
+        this._logger.log('Game objects initialized.');
+    }
+
+
+    private async _initApplication() {
+        this._logger.log('Initializing application.');
+        this.setGameState('initializing');
+        await this.onInitialize(this._resourceManager);
+        this._logger.log('Application initialized.');
+    }
+
+    private async _initialize() {
+        try {
+            this._logger.log('Initializing.');
+            await this._initApplication();
+            await this._initGameObject();
+            this._logger.log('Initialization completed.');
+        } catch (error) {
+            throw Error(`Initialization failed: ${error}`);
+        }
+    }
+
     public async start(options?: Types.StartOptions) {
         try {
-            console.log('Starting application.', options);
-            this.setGameState('loading-res')
+            this._logger.log('Starting application.', options);
+            this.setGameState('loading-res');
             await this.loadResources();
-            this.setGameState('initializing');
-            try {
-                console.log('Initializing.');
-                await this.initialize(this.resourceManager);
-            } catch (error) {
-                throw Error(`Initialization failed: ${error}`);
-            }
-            this.setGameState('ready');
+            await this._initialize();
             this._startTime = performance.now();
             this._lastFrameTime = performance.now();
-            this.gameLoop();
-            this.setGameState('running')
+            this.setGameState('ready');
+            this._logger.log('Starting main loop.');
+            this._mainLoop();
+            this._logger.log('Main loop started.');
+            this.setGameState('running');
             if (options?.fullScreen) this.fullScreen();
-
-            console.log('Application started.');
+            await this._start();
+            await this.onStart(this._resourceManager, this._soundLib);
+            this._logger.log('Application started.');
         } catch (error) {
-            throw `Failed to start: ${error}`;
+            throw `Failed to start application: ${error}`;
         }
     }
 
-    protected initialize(resourceManager: ResourceManager<TResourceID>) {
+    public setGameState(state: CoreTypes.TGameState) {
+        this._state = state;
+        this._logger.log('State changed.', state);
+    }
+
+    public async loadResources() {
+        if (!this._resources?.length) {
+            this._logger.log('No resources to load provided, skipping resource load.');
+            return;
+        }
+        this._logger.log(`Loading resources..`);
+        this.setGameState('loading-res');
+        await this._resourceManager.load(this._resources);
+    }
+
+    public fullScreen() {
+        this._logger.log('Activating full screen.');
+        if (!this._container.requestFullscreen) {
+            console.warn('Browser does not support full-screen');
+            return;
+        }
         try {
-            console.log('Initializing game app..');
-            for (let go of this._gameObjects) {
-                go.initialize(this._resourceManager);
-            }
+            this._container.requestFullscreen();
         } catch (error) {
-            throw Error(`Failed to initialize: ${error}`);
+            console.warn(`Failed to set full-screen: ${error}`);
         }
     }
 
-    protected update(inputManager: InputManager) {
-        try {
-            for (let go of this._gameObjects) {
-                go.update(this._inputManager);
-            }
-        } catch (error) {
-            throw Error(`Failed to update: ${error}`);
-        }
-    }
-
-    protected draw(ctx: CanvasRenderingContext2D) {
-        try {
-            for (let go of this._gameObjects) {
-                go.draw(this._ctx);
-            }
-        } catch (error) {
-            throw Error(`Failed to draw: ${error}`);
-        }
-    }
-
+    protected abstract onInitialize(resourceManager: ResourceManager<TResourceID>): Promise<void>;
+    protected abstract onDraw(ctx: CanvasRenderingContext2D): void;
+    protected abstract onUpdate(inputManager: InputManager): void;
+    protected abstract onStart(resourceManager: ResourceManager<TResourceID>, soundLib: SoundLib): void;
 }

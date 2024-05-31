@@ -1,75 +1,71 @@
 import { InputManager } from "../../core/input-manager";
 import { PizzaWorm } from "../pizza-worm.app";
-import { CoreTypes, GameApp, ResourceManager } from "../../core";
+import { CoreTypes, ResourceManager } from "../../core";
 import { Types } from "../pizza-worm.type";
 import { Constants } from "../pizza-worm.const";
 import { GameObject } from "../../core/game-object";
 
-export class Worm extends GameObject<Types.ResourceID> {
+export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
     private angle: number;
     private length: number;
+    private game: PizzaWorm;
     private colorIndex: number;
     private turningLeft: boolean;
     private turningRight: boolean;
     private segments: Types.WormSegment[];
-    private game: PizzaWorm;
+
+    private onSelfCollision: () => void;
+
+    constructor(game: PizzaWorm, options: {
+        onSelfCollision: () => void
+    }) {
+        super('Worm', game);
+        this.game = game;
+        this.onSelfCollision = options.onSelfCollision;
+        this.reset();
+    }
 
     public get position(): CoreTypes.TVector2D {
-        if (!this.segments) return { x: 0, y: 0 }
         const head = this.segments[this.segments.length - 1];
         return { x: head.x, y: head.y };
     }
 
-    constructor(game: PizzaWorm) {
-        super(game);
-        this.segments = [];
-        this.game = game;
-        this.turningLeft = false;
-        this.turningRight = false;
-        this.angle = 0;
-        this.length = Constants.WORM_INIT_LEN;
-        this.colorIndex = 0;
-    }
-
     public override initialize(resource: ResourceManager<Types.ResourceID>): void {
-        console.group('Initializing worm object.');
-        this.initSegments();
+        this.logger.log('Initialize.');
     }
 
     private initSegments(): void {
-        console.log('Initiating segment.')
         const { width, height } = this.screen;
         for (let i = 0; i < this.length; i++) {
             const segmentPosition: CoreTypes.TVector2D = { x: width / 2, y: height / 2 }
-            const segment = this.createSegment(segmentPosition);
+            const segment = this.addSegment(segmentPosition);
             this.segments.push(segment);
         }
     }
 
-    private createSegment(position: CoreTypes.TVector2D): Types.WormSegment {
-        return { x: position.x, y: position.y, color: this.nextSegmentColor() };
-    }
-
-    private nextSegmentColor(): string {
-        const color = Constants.WORM_COLORS[this.colorIndex];
+    private addSegment(position: CoreTypes.TVector2D): Types.WormSegment {
+        const segmentColor = Constants.WORM_COLORS[this.colorIndex];
         this.colorIndex = (this.colorIndex + 1) % Constants.WORM_COLORS.length;
-        return color;
+        return { x: position.x, y: position.y, color: segmentColor };
     }
 
-    public update(inputManager: InputManager): void {
+    public override start(): void {
+        this.logger.log('Start.');
+    }
+
+    public override update(inputManager: InputManager): void {
         try {
             this.turningLeft = inputManager.isTurningLeft();
             this.turningRight = inputManager.isTurningRight();
             this.updateAngle(Constants.TURNING_SPEED);
-            this.move();
-            this.detectPizzaCollision();
+            this.moveForward();
             this.detectSelfCollision();
         } catch (error) {
             throw Error(`Failed to update worm: ${error}}`);
         }
     }
 
-    public draw(ctx: CanvasRenderingContext2D): void {
+    public override draw(ctx: CanvasRenderingContext2D): void {
         this.segments.forEach(segment => {
             ctx.fillStyle = segment.color;
             ctx.beginPath();
@@ -85,11 +81,22 @@ export class Worm extends GameObject<Types.ResourceID> {
         });
     }
 
+    public reset() {
+        this.segments = [];
+        this.turningLeft = false;
+        this.turningRight = false;
+        this.angle = 0;
+        this.length = Constants.WORM_INIT_LEN;
+        this.colorIndex = 0;
+        this.initSegments();
+        this.enableUpdate = true;
+    }
+
     private updateAngle(turningSpeed: number): void {
         this.angle += this.turningLeft ? -turningSpeed : this.turningRight ? turningSpeed : 0;
     }
 
-    private move(): void {
+    private moveForward(): void {
         for (let i = this.segments.length - 1; i > 0; i--) {
             this.segments[i].x = this.segments[i - 1].x;
             this.segments[i].y = this.segments[i - 1].y;
@@ -105,19 +112,12 @@ export class Worm extends GameObject<Types.ResourceID> {
         });
     }
 
-    private detectPizzaCollision(): void {
-        const pizza = this.game.pizza;
-        const pizzaPos = pizza.position;
-        const pizzaRadius = pizza.radius;
-        const hasCollision = this.checkCollision(pizzaPos, pizzaRadius);
-        if (hasCollision) { this.game.onEat(); }
-    }
-
     public grow(size: number): void {
+        this.logger.log('Growing worm.', size);
         const lastSegment = this.segments[this.segments.length - 1];
         for (let i = 0; i < size; i++) {
             const segmentPosition: CoreTypes.TVector2D = { x: lastSegment.x, y: lastSegment.y }
-            const segment = this.createSegment(segmentPosition);
+            const segment = this.addSegment(segmentPosition);
             this.segments.push(segment);
         }
     }
@@ -131,7 +131,7 @@ export class Worm extends GameObject<Types.ResourceID> {
             const segment = this.segments[i];
             const distance = Math.hypot(head.x - segment.x, head.y - segment.y);
             if (distance < collisionThreshold) {
-                this.game.gameOver();
+                this.onSelfCollision();
                 break;
             }
         }

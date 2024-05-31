@@ -1,14 +1,17 @@
 import { CoreTypes } from "./core.type";
+import { Logger } from "./logger";
+
+const logger = new Logger('ResourceManager');
 
 export class ResourceManager<T extends string> {
     private resources: CoreTypes.TResources<T> = {};
 
     async load(resources: CoreTypes.TResource<T>[], onProgress?: (loaded: number, total: number) => void): Promise<void> {
-        console.log('Loading resources.', resources);
+        logger.log('Loading resources.', resources);
         let resourcesLoaded = 0;
 
         const loadResource = async (resource: CoreTypes.TResource<T>): Promise<void> => {
-            console.log(`Loading resource: "${resource.name}"`, resource);
+            logger.log(`Loading resource: "${resource.name}"`, resource);
             try {
                 if (resource.type === 'gfx') {
                     const img = await this.loadGfxResource(resource);
@@ -18,7 +21,7 @@ export class ResourceManager<T extends string> {
                     this.resources[resource.name] = audio;
                 }
                 resourcesLoaded++;
-                console.log(`${resourcesLoaded}/${resources.length} resources loaded.`);
+                logger.log(`${resourcesLoaded}/${resources.length} resources loaded.`);
 
                 if (onProgress) {
                     onProgress(resourcesLoaded, resources.length);
@@ -41,11 +44,9 @@ export class ResourceManager<T extends string> {
             img.onload = () => resolve(img);
             img.onerror = () => {
                 const exception = new Error(`Failed to load GFX resource: ${resource.url}`);
-                reject(exception); 
+                reject(exception);
             }
             img.src = resource.url;
-
-  
         });
     }
 

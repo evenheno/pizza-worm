@@ -5,15 +5,11 @@ import commonjs from '@rollup/plugin-commonjs';
 
 export default {
   input: 'src/index.ts',
-  external: ['engix'],
   output: {
     name: 'pworm',
     file: 'dist/pworm.min.js',
     format: 'esm',
-    sourcemap: false,
-    globals: {
-      engix: 'engix'
-    }
+    sourcemap: true
   },
   plugins: [
     nodeResolve(),

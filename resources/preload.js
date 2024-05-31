@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setLoader(active) {
-    loader.style.display = active ? 'none' : 'flex';
+    loader.style.display = active ? 'flex' : 'none';
   }
 
   function setLoaderAnim(active) {

@@ -16,4 +16,5 @@ export namespace Types {
         | 'backdrop'
         | 'background-music';
 
+    export type GameObjectID = 'Pizza' | 'Backdrop' | 'Worm';
 }

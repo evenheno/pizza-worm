@@ -1,48 +1,39 @@
 
-import { PizzaWorm } from "../pizza-worm.app";
-import { CoreTypes, IPositionComponent, InputManager, ResourceManager, GameObject } from '../../core';
 import { Types } from "../pizza-worm.type";
-import { PositionComponent } from "../../core/components/position.component";
+import { PizzaWorm } from "../pizza-worm.app";
+import { CoreTypes, InputManager, ResourceManager, GameObject } from '../../core';
 
-export class Pizza extends GameObject<Types.ResourceID> {
-    private _radius: number
-    private _sprites: HTMLImageElement[];
+export class Pizza extends GameObject<Types.ResourceID, Types.GameObjectID> {
+    private _pizzaSprites: HTMLImageElement[];
     private _currentGfx: HTMLImageElement;
 
-    public get positionComp() { return this.getComponent<IPositionComponent>(PositionComponent) }
-    public get position() { return this.positionComp.position }
-    public get radius() { return this._radius; }
+    public radius: number
+    public position: CoreTypes.TVector2D;
 
-    public constructor(app: PizzaWorm, position: CoreTypes.TVector2D, radius: number) {
-        try {
-            console.group('[Pizza]: Constructor');
-            super(app);
-            this._radius = radius;
-            console.log('Adding position component.');
-            this.addComponent(PositionComponent, new PositionComponent(position));
-        } catch (error) {
-            throw Error(`[Pizza]: Failed to initialize class: ${error}`);
-        }
+    public constructor(app: PizzaWorm) {
+        super('Pizza', app);
     }
 
-    public override initialize(res: ResourceManager<Types.ResourceID>): void {
-        console.group('[Pizza]: Initializing..');
-        this._sprites = [res.get("pizza-pepperoni"), res.get("pizza-mushrooms")];
-        this.randomPizza();
+    private replaceSprite() {
+        this._currentGfx = this._pizzaSprites[Math.floor(Math.random() * this._pizzaSprites.length)];
+    }
+
+    public override initialize(resource: ResourceManager<Types.ResourceID>): void {
+        this._pizzaSprites = [
+            resource.get("pizza-pepperoni"),
+            resource.get("pizza-mushrooms")
+        ];
+        this.replaceSprite();
     }
 
     public override update(inputManager: InputManager): void { }
-
-    private randomPizza() {
-        console.log('[Pizza]: Selecting random sprite..');
-        this._currentGfx = this._sprites[Math.floor(Math.random() * this._sprites.length)];
-    }
+    public override start(): void { }
 
     public override draw(ctx: CanvasRenderingContext2D) {
-        const x = this.position.x - this._radius;
-        const y = this.position.y - this._radius;
-        const w = this._radius * 2;
-        const h = this._radius * 2;
+        const x = this.position.x - this.radius;
+        const y = this.position.y - this.radius;
+        const w = this.radius * 2;
+        const h = this.radius * 2;
         ctx.drawImage(this._currentGfx, x, y, w, h);
     }
 }

@@ -7,6 +7,10 @@ export class InputManager {
         this.initialize();
     }
 
+    public onAnyKey:()=> {
+        
+    }
+
     private initialize(): void {
         this.setupKeyboardListeners();
         this.setupTouchListeners();
@@ -44,5 +48,5 @@ export class InputManager {
     isTurningLeft(): boolean { return !!this._keyMap['ArrowLeft']; }
     isTurningRight(): boolean { return !!this._keyMap['ArrowRight']; }
     isAnyKey(): boolean { return Object.values(this._keyMap).some(value => value); }
-    isEnter(): boolean { return !!this._keyMap['Enter']; }
+    isEnter(): boolean { return this._keyMap['Enter']; }
 }

@@ -1,4 +1,7 @@
+import { Logger } from "./logger";
 import { TPlaySfxOptions } from "./sfx-manager.type";
+
+const logger = new Logger('SfxManager');
 
 export type TPlayFreqOptions = {
   frequency: number,
@@ -14,12 +17,14 @@ export class SoundLib {
   private audioContext: AudioContext;
 
   constructor() {
-    this.initialize(); 
+    try {
+      logger.log('Initializing.');
+      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    } catch (error) {
+      throw `Failed to initialize.`;
+    }
   }
 
-  private initialize(){
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-  }
 
   public playFreq(options: TPlayFreqOptions) {
     const frequency = options.frequency;
@@ -57,9 +62,9 @@ export class SoundLib {
   }
 
   public playSfx(audioElement: HTMLAudioElement, options?: TPlaySfxOptions) {
-    if (!audioElement) {
-      throw Error('Invalid audio element provided');
-    }
+
+    logger.log('Playing sfx.', options);
+    if (!audioElement) throw Error('Invalid audio element provided');
 
     const track = this.audioContext.createMediaElementSource(audioElement);
     const gainNode = this.audioContext.createGain();
@@ -73,7 +78,6 @@ export class SoundLib {
 
     if (options?.repeat) {
       audioElement.loop = true;
-      
       audioElement.addEventListener('ended', function handler() {
         if (options?.repeat) {
           audioElement.loop = false;
@@ -85,5 +89,6 @@ export class SoundLib {
     audioElement.play().catch((error) => {
       throw `Error playing audio element: ${error}`;
     });
+
   }
 }

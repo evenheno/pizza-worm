@@ -2,12 +2,15 @@ import { BaseComponent } from "./base-component";
 import { GameApp } from "../game-app";
 import { CoreTypes } from "../core.type";
 
-export class ResourceComponent<TResourceID extends string> extends BaseComponent<TResourceID> {
-    private resources: { [key: string]: CoreTypes.TResourceType } = {};
+export class ResourceComponent
+    <TResourceID extends string, TGameObjectID extends string>
+    extends BaseComponent<TResourceID, TGameObjectID> {
 
-    constructor(private app: GameApp<TResourceID>) {
+    constructor(private app: GameApp<TResourceID, TGameObjectID>) {
         super();
     }
+
+    private resources: { [key: string]: CoreTypes.TResourceType } = {};
 
     addResource(name: TResourceID, resource: CoreTypes.TResourceType): void {
         this.resources[name] = resource;

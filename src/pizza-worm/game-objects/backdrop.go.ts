@@ -1,16 +1,16 @@
-
-import { PizzaWorm } from "../pizza-worm.app";
-import { InputManager, ResourceManager } from '../../core';
-import { GameObject } from "../../core/game-object";
 import { Types } from "../pizza-worm.type";
+import { PizzaWorm } from "../pizza-worm.app";
+import { GameObject } from "../../core/game-object";
+import { ResourceManager } from '../../core';
 
-export class Backdrop extends GameObject<Types.ResourceID> {
+export class Backdrop extends GameObject<Types.ResourceID, Types.GameObjectID> {
+
     private sprite: HTMLImageElement;
 
     public constructor(app: PizzaWorm) {
-        super(app);
+        super('Backdrop', app);
     }
-
+    public override start(): void { }
     public override update(): void { }
 
     public override initialize(resource: ResourceManager<Types.ResourceID>): void {
@@ -18,7 +18,11 @@ export class Backdrop extends GameObject<Types.ResourceID> {
     }
 
     public override draw(ctx: CanvasRenderingContext2D,) {
-        const { width, height } = this.screen;
-        ctx.drawImage(this.sprite, 0, 0, width, height);
+        try {
+            const { width, height } = this.screen;
+            ctx.drawImage(this.sprite, 0, 0, width, height);
+        } catch (error) {
+            throw Error(`Failed to draw backdrop: ${error}`)
+        }
     }
 }
