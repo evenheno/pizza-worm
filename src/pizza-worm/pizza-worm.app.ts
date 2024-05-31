@@ -24,8 +24,8 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
 
     protected override async onStart(resourceManager: ResourceManager<Types.ResourceID>, soundLib: SoundLib): Promise<void> {
         this.logger.log('Starting background music.');
-        const track: HTMLAudioElement = resourceManager.get('background-music');
-        soundLib.playSfx(track, { repeat: true, volume: 0.7 });
+        const audioTrackData: HTMLAudioElement = resourceManager.get('background-music');
+        soundLib.playSfx(audioTrackData, { repeat: true, volume: 0.7 });
     }
 
     protected override onDraw() {

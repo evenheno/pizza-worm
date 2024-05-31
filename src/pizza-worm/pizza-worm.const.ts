@@ -10,6 +10,7 @@ export namespace Constants {
     export const PIZZA_RADIUS = [20, 60];
     export const TURNING_SPEED = (Math.PI / 36) * DIFFICULTY;
     export const RESOURCES: CoreTypes.TResource<Types.ResourceID>[] = [
+        { name: 'midi-file', url: 'assets/entertainer.mid', type: 'midi' },
         { name: "backdrop", url: "assets/backdrop.gif", type: 'gfx' },
         { name: "pizza-pepperoni", url: "assets/pizza-pepperoni.gif", type: 'gfx' },
         { name: "pizza-mushrooms", url: "assets/pizza-mushrooms.gif", type: 'gfx' },

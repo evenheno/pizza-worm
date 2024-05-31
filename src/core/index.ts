@@ -5,3 +5,4 @@ export * from './resource-manager';
 export * from './sfx-manager';
 export * from './components';
 export * from './game-object';
+export * from './midi';

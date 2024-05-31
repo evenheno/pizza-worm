@@ -19,6 +19,9 @@ export class ResourceManager<T extends string> {
                 } else if (resource.type === 'sfx') {
                     const audio = await this.loadSfxResource(resource);
                     this.resources[resource.name] = audio;
+                } else if (resource.type === 'midi') {
+                    const midi = await this.loadMidiResource(resource);
+                    this.resources[resource.name] = midi;
                 }
                 resourcesLoaded++;
                 logger.log(`${resourcesLoaded}/${resources.length} resources loaded.`);
@@ -50,6 +53,21 @@ export class ResourceManager<T extends string> {
         });
     }
 
+    private async loadMidiResource(resource: CoreTypes.TResource<T>): Promise<ArrayBuffer> {
+        return new Promise((resolve, reject) => {
+            fetch(resource.url)
+                .then(response => response.arrayBuffer())
+                .then(arrayBuffer => {
+                    logger.log(`Loaded MIDI resource: ${resource.name}, size: ${arrayBuffer.byteLength}`);
+                    resolve(arrayBuffer);
+                })
+                .catch(error => {
+                    const exception = new Error(`Failed to load MIDI resource: ${resource.url}, ${error.message}`);
+                    reject(exception);
+                });
+        });
+    }
+    
     private async loadSfxResource(resource: CoreTypes.TResource<T>): Promise<HTMLAudioElement> {
         return new Promise((resolve, reject) => {
             const handleError = () => {

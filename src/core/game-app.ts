@@ -5,6 +5,7 @@ import { CoreTypes } from "./core.type";
 import { Types } from "../pizza-worm/pizza-worm.type";
 import { GameObject } from "./game-object";
 import { Logger } from "./logger";
+import { MidiPlayer, MidiParser } from "../core";
 
 export abstract class GameApp<TResourceID extends string, TGameObjectID extends string> {
     private _lastFrameTime: number = 0;
@@ -25,15 +26,11 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
     private _logger: Logger;
 
     public get fps() { return this._fps }
-    //public get ctx() { return this._ctx; }
     public get state() { return this._state; }
     public get screen() { return this._screen }
     public get runtime() { return this._runtime }
     public get soundLib() { return this._soundLib; }
     protected get logger() { return this._logger; }
-    //public get inputManager() { return this._inputManager; }
-    //public get resourceManager() { return this._resourceManager }
-    //public get gameObjects() { return this._gameObjects }
 
     public constructor(container: HTMLCanvasElement, resources: CoreTypes.TResource<TResourceID>[]) {
         try {
@@ -53,7 +50,7 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
             throw Error(`Failed to initialize application: ${error}`);
         }
     }
-
+    
     public addObject(id: TGameObjectID, gameObject: GameObject<TResourceID, TGameObjectID>) {
         this._logger.log('Adding game object.', id);
         this._gameObjects.set(id, gameObject);
