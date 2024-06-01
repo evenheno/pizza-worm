@@ -9,7 +9,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
     private _lastEatingTime: number = 0;
     private _totalEatTime: number = 0;
     private _totalPizzasEaten: number = 0;
-    private _gameOver: boolean;
+    private _gameOver: boolean = false;
 
     public constructor(container: HTMLCanvasElement) {
         super(container, Constants.RESOURCES);

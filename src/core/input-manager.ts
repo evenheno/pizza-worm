@@ -7,10 +7,6 @@ export class InputManager {
         this.initialize();
     }
 
-    public onAnyKey:()=> {
-        
-    }
-
     private initialize(): void {
         this.setupKeyboardListeners();
         this.setupTouchListeners();

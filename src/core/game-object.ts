@@ -53,7 +53,7 @@ export abstract class GameObject
 
     public destroy(): void {
         this._components.forEach(component => component.destroy());
-        this._components = undefined;
+        this._components = new Map();
     }
 
     public abstract initialize(resource: ResourceManager<TResourceID>): void;

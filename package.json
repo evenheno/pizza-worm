@@ -17,6 +17,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-url": "^8.0.2",
     "live-server": "^1.2.2",
     "open": "^10.1.0",
     "rollup": "^2.79.1",

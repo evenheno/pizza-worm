@@ -1,7 +1,9 @@
+// rollup.config.js
 import typescript from 'rollup-plugin-typescript2';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import commonjs from '@rollup/plugin-commonjs';
+import url from '@rollup/plugin-url';
 
 export default {
   input: 'src/index.ts',
@@ -15,6 +17,10 @@ export default {
     nodeResolve(),
     commonjs(),
     typescript({ tsconfig: 'tsconfig.json' }),
+    url({
+      include: ['**/*.png', '**/*.gif', '**/*.jpg', '**/*.jpeg', '**/*.mp3'],
+      limit: 0, // No size limit for converting to base64
+    }),
     terser({
       compress: {
         passes: 35,

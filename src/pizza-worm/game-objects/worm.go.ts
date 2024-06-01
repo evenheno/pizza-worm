@@ -6,13 +6,13 @@ import { Constants } from "../pizza-worm.const";
 import { GameObject } from "../../core/game-object";
 
 export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
-    private angle: number;
-    private length: number;
+    private angle!: number;
+    private length!: number;
     private game: PizzaWorm;
-    private colorIndex: number;
-    private turningLeft: boolean;
-    private turningRight: boolean;
-    private segments: Types.WormSegment[];
+    private colorIndex!: number;
+    private turningLeft!: boolean;
+    private turningRight!: boolean;
+    private segments!: Types.WormSegment[];
 
     private onSelfCollision: () => void;
 

@@ -30,14 +30,14 @@ export class ResourceManager<T extends string> {
                     onProgress(resourcesLoaded, resources.length);
                 }
             } catch (error) {
-                throw new Error(`Failed to load resource: ${resource.name}, ${error.message}`);
+                throw new Error(`Failed to load resource: ${resource.name}: ${error}`);
             }
         };
 
         try {
             await Promise.all(resources.map(loadResource));
         } catch (error) {
-            throw new Error(`Failed to load resources: ${error.message}`);
+            throw new Error(`Failed to load resources: ${error}`);
         }
     }
 
