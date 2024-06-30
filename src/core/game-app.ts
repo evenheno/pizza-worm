@@ -5,7 +5,6 @@ import { CoreTypes } from "./core.type";
 import { Types } from "../pizza-worm/pizza-worm.type";
 import { GameObject } from "./game-object";
 import { Logger } from "./logger";
-import { MidiPlayer, MidiParser } from "../core";
 
 export abstract class GameApp<TResourceID extends string, TGameObjectID extends string> {
     private _lastFrameTime: number = 0;
