@@ -1,3 +1,3 @@
-//Version 1.0.2
+//Version 1.0.0
 import { PizzaWorm } from "./pizza-worm/pizza-worm.app";
 window.PizzaWorm = PizzaWorm;
