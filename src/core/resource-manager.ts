@@ -56,7 +56,10 @@ export class ResourceManager<T extends string> {
     private async loadMidiResource(resource: CoreTypes.TResource<T>): Promise<ArrayBuffer> {
         return new Promise((resolve, reject) => {
             fetch(resource.url)
-                .then(response => response.arrayBuffer())
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return response.arrayBuffer();
+                })
                 .then(arrayBuffer => {
                     logger.log(`Loaded MIDI resource: ${resource.name}, size: ${arrayBuffer.byteLength}`);
                     resolve(arrayBuffer);
@@ -83,6 +86,7 @@ export class ResourceManager<T extends string> {
     }
 
     get<TResult extends CoreTypes.TResourceType>(name: T): TResult {
+        if (!this.resources[name]) throw new Error(`Resource not loaded: ${name}`);
         return this.resources[name] as TResult;
     }
 }

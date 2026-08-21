@@ -5,6 +5,9 @@ import { Constants } from "./pizza-worm.const";
 import { Types } from "./pizza-worm.type";
 
 export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
+    private static readonly PIZZA_PLACEMENT_ATTEMPTS = 250;
+    private static readonly MIN_PIZZA_RADIUS = 4;
+
     private _score: number = 0;
     private _lastEatingTime: number = 0;
     private _totalEatTime: number = 0;
@@ -19,10 +22,12 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
         this.addObject('Backdrop', new Backdrop(this));
         this.addObject('Pizza', new Pizza(this));
         this.addObject('Worm', new Worm(this, { onSelfCollision: this.onWormSelfCollision.bind(this) }));
-        this.placePizza();
     }
 
     protected override async onStart(resourceManager: ResourceManager<Types.ResourceID>, soundLib: SoundLib): Promise<void> {
+        // Game objects are initialized before onStart runs, so pizza sprites
+        // are guaranteed to be available when the first pizza is placed.
+        this.placePizza();
         this.logger.log('Starting background music.');
         const audioTrackData: HTMLAudioElement = resourceManager.get('background-music');
         soundLib.playSfx(audioTrackData, { repeat: true, volume: 0.7 });
@@ -56,7 +61,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
     }
 
 
-    protected override onUpdate(inputManager: InputManager) {
+    protected override onUpdate(inputManager: InputManager, deltaTime: number) {
         if (this._gameOver) return;
         this.detectPizzaCollision();
     }
@@ -66,7 +71,7 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
         const worm: Worm = this.getObject('Worm');
         const pizzaPos = pizza.position;
         const pizzaRadius = pizza.radius;
-        const hasCollision = worm.checkCollision(pizzaPos, pizzaRadius);
+        const hasCollision = worm.checkHeadCollision(pizzaPos, pizzaRadius);
         if (hasCollision) {
             this.logger.log('Pizza collision detected.');
             const growFactor = Math.floor(pizza.radius / 2);
@@ -75,40 +80,84 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
             const eatTime = (Date.now() - this._lastEatingTime) / 1000;
             this._totalEatTime += eatTime;
             this._totalPizzasEaten++;
-            this.placePizza();
-            this.playCoinChipSound();
+            const didPlacePizza = this.placePizza();
+            if (didPlacePizza) this.playCoinChipSound();
         }
     }
 
-    public placePizza() {
+    public placePizza(): boolean {
         try {
             this.logger.log('Placing pizza.');
             const pizza: Pizza = this.getObject('Pizza');
             const worm: Worm = this.getObject('Worm');
 
-            const rarityFactor = 3 * Constants.DIFFICULTY;
-            const minRadius = Constants.PIZZA_RADIUS[0];
-            const maxRadius = Constants.PIZZA_RADIUS[1];
-            const randomValue = Math.random();
-            const radius = minRadius + Math.round(Math.pow(randomValue, rarityFactor) * (maxRadius - minRadius));
+            const radius = this.getRandomPizzaRadius();
+            const position = this.findPizzaPosition(worm, radius);
+            if (!position) {
+                this.logger.log('No valid pizza position found.');
+                this.onWormSelfCollision();
+                return false;
+            }
+
             pizza.radius = radius;
-
-
-            const randomPos = (bound: number) => Math.floor(Math.random() * (bound - 2 * radius)) + radius;
-            let hasCollision: boolean;
-            let position: CoreTypes.TVector2D
-            do {
-                position = { x: randomPos(this.screen.width), y: randomPos(this.screen.height) };
-                hasCollision = worm.checkCollision(position, radius);
-            } while (hasCollision);
             pizza.position = position;
+            pizza.replaceSprite();
             this._lastEatingTime = Date.now();
+            return true;
         } catch (error) {
             throw Error(`Failed to place pizza: ${error}`);
         }
     }
 
+    private getRandomPizzaRadius(): number {
+        const rarityFactor = 3 * Constants.DIFFICULTY;
+        const maxPlayableRadius = Math.max(
+            PizzaWorm.MIN_PIZZA_RADIUS,
+            Math.floor(Math.min(this.screen.width, this.screen.height) / 2) - 1
+        );
+        const maxRadius = Math.min(Constants.PIZZA_RADIUS[1], maxPlayableRadius);
+        const minRadius = Math.min(Constants.PIZZA_RADIUS[0], maxRadius);
+        const randomValue = Math.random();
+        return minRadius + Math.round(Math.pow(randomValue, rarityFactor) * (maxRadius - minRadius));
+    }
+
+    private findPizzaPosition(worm: Worm, radius: number): CoreTypes.TVector2D | null {
+        for (let attempt = 0; attempt < PizzaWorm.PIZZA_PLACEMENT_ATTEMPTS; attempt++) {
+            const position = this.getRandomPizzaPosition(radius);
+            if (!worm.checkCollision(position, radius)) return position;
+        }
+
+        return this.findGridPizzaPosition(worm, radius);
+    }
+
+    private getRandomPizzaPosition(radius: number): CoreTypes.TVector2D {
+        const randomPos = (bound: number) => {
+            const min = radius;
+            const max = bound - radius;
+            if (max <= min) return bound / 2;
+            return Math.floor(Math.random() * (max - min)) + min;
+        };
+
+        return { x: randomPos(this.screen.width), y: randomPos(this.screen.height) };
+    }
+
+    private findGridPizzaPosition(worm: Worm, radius: number): CoreTypes.TVector2D | null {
+        const step = Math.max(radius, Constants.WORM_THICKNESS);
+        const maxX = this.screen.width - radius;
+        const maxY = this.screen.height - radius;
+
+        for (let y = radius; y <= maxY; y += step) {
+            for (let x = radius; x <= maxX; x += step) {
+                const position = { x, y };
+                if (!worm.checkCollision(position, radius)) return position;
+            }
+        }
+
+        return null;
+    }
+
     public onWormSelfCollision() {
+        if (this._gameOver) return;
         const worm: Worm = this.getObject('Worm');
         this._gameOver = true;
         worm.enableUpdate = false;
@@ -120,7 +169,20 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
     }
 
     public playGameOverSound() {
-        //TODO: Implement
+        const frequencies = [360, 240, 160];
+        frequencies.forEach((frequency, index) => {
+            setTimeout(() => {
+                this.soundLib.playFreq({
+                    duration: 0.35,
+                    frequency,
+                    filterFrequency: frequency * 2,
+                    delayTime: 0.08,
+                    detune: -15,
+                    volume: 0.7,
+                    type: 'square'
+                });
+            }, index * 140);
+        });
     }
 
     public playCoinChipSound() {
@@ -151,13 +213,12 @@ export class PizzaWorm extends GameApp<Types.ResourceID, Types.GameObjectID> {
     public reset() {
         const worm: Worm = this.getObject('Worm');
         this._score = 0;
-        this._lastEatingTime = (Date.now() - this._lastEatingTime) / 1000;
         this._totalEatTime = 0;
         this._totalPizzasEaten = 0;
-        this.placePizza();
         worm.reset();
         this._gameOver = false;
         worm.enableUpdate = true;
+        this.placePizza();
     }
 
     private getAverageEatingPeriod(): number {

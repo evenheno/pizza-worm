@@ -9,7 +9,7 @@ export abstract class BaseComponent<TResID extends string, TGameObjectID extends
         this._gameObject = gameObject;
     }
 
-    public abstract update(input: InputManager): void;
+    public abstract update(input: InputManager, deltaTime: number): void;
     public abstract draw(context: CanvasRenderingContext2D): void;
     public abstract destroy(): void;
 }

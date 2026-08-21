@@ -14,7 +14,7 @@ export class Pizza extends GameObject<Types.ResourceID, Types.GameObjectID> {
         super('Pizza', app);
     }
 
-    private replaceSprite() {
+    public replaceSprite() {
         this._currentGfx = this._pizzaSprites[Math.floor(Math.random() * this._pizzaSprites.length)];
     }
 
@@ -26,7 +26,7 @@ export class Pizza extends GameObject<Types.ResourceID, Types.GameObjectID> {
         this.replaceSprite();
     }
 
-    public override update(inputManager: InputManager): void { }
+    public override update(inputManager: InputManager, deltaTime: number): void { }
     public override start(): void { }
 
     public override draw(ctx: CanvasRenderingContext2D) {

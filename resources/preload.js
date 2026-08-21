@@ -4,12 +4,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const loader = document.getElementById('loader');
 
   container.addEventListener('dblclick', () => {
-    instance.fullScreen();
+    if (instance && instance.fullScreen) {
+      instance.fullScreen();
+      return;
+    }
+
+    if (container.requestFullscreen) container.requestFullscreen();
   });
 
   function setStatusMessage(statusMessage) {
     console.log(`Status: ${statusMessage}`);
-    loader.innerHTML = statusMessage;
+    loader.textContent = statusMessage;
   }
 
   function setLoader(active) {
@@ -25,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setStatusMessage('Initializing..');
       const application = new PizzaWorm(container);
       setStatusMessage('Starting application..');
-      await application.start({ fullScreen: true });
+      await application.start({ fullScreen: false });
       setLoader(false);
       return application;
     } catch (error) {
@@ -37,6 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', async () => {
     if (instance) return;
     else instance = true;
+    if (container.requestFullscreen) {
+      container.requestFullscreen().catch((error) => {
+        console.warn(`Failed to set full-screen: ${error}`);
+      });
+    }
     instance = await run();
   });
 

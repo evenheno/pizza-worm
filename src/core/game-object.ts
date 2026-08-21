@@ -7,7 +7,7 @@ import { ResourceManager } from "./resource-manager";
 
 export interface IGameObject<TResourceID extends string> {
     initialize(resource: ResourceManager<TResourceID>): void;
-    update(inputManager: InputManager): void;
+    update(inputManager: InputManager, deltaTime: number): void;
     draw(context: CanvasRenderingContext2D): void;
 }
 
@@ -57,7 +57,7 @@ export abstract class GameObject
     }
 
     public abstract initialize(resource: ResourceManager<TResourceID>): void;
-    public abstract update(inputManager: InputManager): void;
+    public abstract update(inputManager: InputManager, deltaTime: number): void;
     public abstract draw(context: CanvasRenderingContext2D): void;
     public abstract start(): void;
 }

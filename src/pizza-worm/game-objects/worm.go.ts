@@ -26,7 +26,7 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
     }
 
     public get position(): CoreTypes.TVector2D {
-        const head = this.segments[this.segments.length - 1];
+        const head = this.segments[0];
         return { x: head.x, y: head.y };
     }
 
@@ -53,12 +53,13 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
         this.logger.log('Start.');
     }
 
-    public override update(inputManager: InputManager): void {
+    public override update(inputManager: InputManager, deltaTime: number): void {
         try {
+            const frameScale = deltaTime / (1000 / 60);
             this.turningLeft = inputManager.isTurningLeft();
             this.turningRight = inputManager.isTurningRight();
-            this.updateAngle(Constants.TURNING_SPEED);
-            this.moveForward();
+            this.updateAngle(Constants.TURNING_SPEED * frameScale);
+            this.moveForward(frameScale);
             this.detectSelfCollision();
         } catch (error) {
             throw Error(`Failed to update worm: ${error}}`);
@@ -66,19 +67,37 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
     }
 
     public override draw(ctx: CanvasRenderingContext2D): void {
-        this.segments.forEach(segment => {
-            ctx.fillStyle = segment.color;
+        const colors = Constants.WORM_COLORS;
+        const colorCount = colors.length;
+        const radius = Constants.WORM_THICKNESS / 2;
+
+        // The segment colors are assigned in a repeating cycle. Drawing one
+        // path per color avoids changing canvas state and filling once per
+        // segment.
+        for (let colorIndex = 0; colorIndex < colorCount; colorIndex++) {
+            ctx.fillStyle = colors[colorIndex];
             ctx.beginPath();
-            ctx.arc(segment.x, segment.y, Constants.WORM_THICKNESS / 2, 0, Math.PI * 2);
+            for (let segmentIndex = colorIndex; segmentIndex < this.segments.length; segmentIndex += colorCount) {
+                const segment = this.segments[segmentIndex];
+                ctx.moveTo(segment.x + radius, segment.y);
+                ctx.arc(segment.x, segment.y, radius, 0, Math.PI * 2);
+            }
             ctx.fill();
-        });
+        }
     }
 
     public checkCollision(position: CoreTypes.TVector2D, radius: number): boolean {
-        return this.segments.some(segment => {
-            const distance = Math.hypot(segment.x - position.x, segment.y - position.y);
-            return distance < Constants.WORM_THICKNESS / 2 + radius;
-        });
+        const collisionRadius = Constants.WORM_THICKNESS / 2 + radius;
+        const collisionRadiusSquared = collisionRadius * collisionRadius;
+        return this.segments.some(segment =>
+            this.getWrappedDistanceSquared(segment, position) < collisionRadiusSquared
+        );
+    }
+
+    public checkHeadCollision(position: CoreTypes.TVector2D, radius: number): boolean {
+        const head = this.segments[0];
+        const collisionRadius = Constants.WORM_THICKNESS / 2 + radius;
+        return this.getWrappedDistanceSquared(head, position) < collisionRadius * collisionRadius;
     }
 
     public reset() {
@@ -96,15 +115,15 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
         this.angle += this.turningLeft ? -turningSpeed : this.turningRight ? turningSpeed : 0;
     }
 
-    private moveForward(): void {
+    private moveForward(frameScale: number): void {
         for (let i = this.segments.length - 1; i > 0; i--) {
             this.segments[i].x = this.segments[i - 1].x;
             this.segments[i].y = this.segments[i - 1].y;
         }
 
         const head = this.segments[0];
-        head.x += Math.cos(this.angle) * Constants.SPEED;
-        head.y += Math.sin(this.angle) * Constants.SPEED;
+        head.x += Math.cos(this.angle) * Constants.SPEED * frameScale;
+        head.y += Math.sin(this.angle) * Constants.SPEED * frameScale;
 
         this.segments.forEach(segment => {
             segment.x = segment.x < 0 ? this.screen.width : segment.x >= this.screen.width ? 0 : segment.x;
@@ -125,15 +144,25 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
     private detectSelfCollision(): void {
         const head = this.segments[0];
         const collisionThreshold = Constants.WORM_THICKNESS / 5;
-        const minLenCheck = Math.ceil(collisionThreshold * 2 / Constants.WORM_THICKNESS);
+        const collisionThresholdSquared = collisionThreshold * collisionThreshold;
+        const minLenCheck = Math.ceil(Constants.WORM_THICKNESS / Constants.SPEED) + 2;
         if (this.segments.length <= minLenCheck) return;
         for (let i = minLenCheck; i < this.segments.length; i++) {
             const segment = this.segments[i];
-            const distance = Math.hypot(head.x - segment.x, head.y - segment.y);
-            if (distance < collisionThreshold) {
+            if (this.getWrappedDistanceSquared(head, segment) < collisionThresholdSquared) {
                 this.onSelfCollision();
                 break;
             }
         }
+    }
+
+    private getWrappedDistanceSquared(a: CoreTypes.TVector2D, b: CoreTypes.TVector2D): number {
+        const width = this.screen.width;
+        const height = this.screen.height;
+        const rawXDistance = Math.abs(a.x - b.x);
+        const rawYDistance = Math.abs(a.y - b.y);
+        const xDistance = width > 0 ? Math.min(rawXDistance, width - rawXDistance) : rawXDistance;
+        const yDistance = height > 0 ? Math.min(rawYDistance, height - rawYDistance) : rawYDistance;
+        return xDistance * xDistance + yDistance * yDistance;
     }
 }

@@ -1,11 +1,11 @@
 // rollup.config.js
-import typescript from 'rollup-plugin-typescript2';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import { terser } from 'rollup-plugin-terser';
-import commonjs from '@rollup/plugin-commonjs';
-import url from '@rollup/plugin-url';
+const typescript = require('@rollup/plugin-typescript');
+const { nodeResolve } = require('@rollup/plugin-node-resolve');
+const { terser } = require('rollup-plugin-terser');
+const commonjs = require('@rollup/plugin-commonjs');
+const url = require('@rollup/plugin-url');
 
-export default {
+module.exports = {
   input: 'src/index.ts',
   output: {
     name: 'pworm',
@@ -14,16 +14,18 @@ export default {
     sourcemap: true
   },
   plugins: [
-    nodeResolve(),
-    commonjs(),
     typescript({ tsconfig: 'tsconfig.json' }),
+    nodeResolve({
+      extensions: ['.mjs', '.js', '.json', '.node', '.ts', '.tsx']
+    }),
+    commonjs(),
     url({
       include: ['**/*.png', '**/*.gif', '**/*.jpg', '**/*.jpeg', '**/*.mp3'],
       limit: 0, // No size limit for converting to base64
     }),
     terser({
       compress: {
-        passes: 35,
+        passes: 3,
         drop_console: false,
         drop_debugger: true,
         collapse_vars: true,

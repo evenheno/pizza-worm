@@ -7,7 +7,10 @@ import { GameObject } from "./game-object";
 import { Logger } from "./logger";
 
 export abstract class GameApp<TResourceID extends string, TGameObjectID extends string> {
+    private static readonly FIXED_UPDATE_STEP = 1000 / 60;
+    private static readonly MAX_UPDATE_STEPS = 6;
     private _lastFrameTime: number = 0;
+    private _updateAccumulator: number = 0;
     private _fps: number = 0;
     private _runtime: number;
     private _frameCount: number = 0;
@@ -39,11 +42,11 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
             this._resources = resources;
             this._container = container;
             this._resourceManager = new ResourceManager();
-            this._inputManager = new InputManager();
             this._state = 'idle';
-            this._screen = { width: 1024, height: 768 }
+            this._screen = { width: this._container.width, height: this._container.height }
             this._ctx = this._container.getContext("2d")!;
             this._ctx.imageSmoothingEnabled = false;
+            this._inputManager = new InputManager(this._container);
             this._gameObjects = new Map();
         } catch (error) {
             throw Error(`Failed to initialize application: ${error}`);
@@ -140,9 +143,10 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
 
     private _mainLoop(): void {
         try {
-            const now = this.runtime;
-            const delta = now - this._lastFrameTime;
+            const now = performance.now();
+            const delta = Math.max(0, Math.min(now - this._lastFrameTime, 100));
             this._lastFrameTime = now;
+            this._runtime = now - this._startTime;
             this._frameCount++;
             this._fpsTime += delta;
             if (this._fpsTime >= 1000) {
@@ -150,9 +154,23 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
                 this._frameCount = 0;
                 this._fpsTime = 0;
             }
-            this._update(this._inputManager);
+            this._updateAccumulator += delta;
+            let updateSteps = 0;
+            while (
+                this._updateAccumulator >= GameApp.FIXED_UPDATE_STEP &&
+                updateSteps < GameApp.MAX_UPDATE_STEPS
+            ) {
+                this._update(this._inputManager, GameApp.FIXED_UPDATE_STEP);
+                this._updateAccumulator -= GameApp.FIXED_UPDATE_STEP;
+                updateSteps++;
+            }
+
+            // Drop excess accumulated time after a long stall. This prevents a
+            // suspended tab from causing a burst of expensive updates later.
+            if (updateSteps === GameApp.MAX_UPDATE_STEPS) {
+                this._updateAccumulator = 0;
+            }
             this._draw(this._ctx);
-            this._runtime = (performance.now() - this._startTime);
             requestAnimationFrame(this._mainLoop.bind(this));
         } catch (error) {
             this.setGameState('crashed')
@@ -162,16 +180,16 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
         }
     }
 
-    private _update(inputManager: InputManager) {
+    private _update(inputManager: InputManager, deltaTime: number) {
         try {
             const keys = Array.from(this._gameObjects.keys());
             for (const key of keys) {
                 const gameObject = this._gameObjects.get(key as TGameObjectID);
                 if (gameObject?.enableUpdate) {
-                    gameObject.update(inputManager);
+                    gameObject.update(inputManager, deltaTime);
                 }
             }
-            this.onUpdate(inputManager);
+            this.onUpdate(inputManager, deltaTime);
         } catch (error) {
             throw new Error(`Failed to update: ${error}`);
         }
@@ -248,14 +266,15 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
             await this._initialize();
             this._startTime = performance.now();
             this._lastFrameTime = performance.now();
+            this._updateAccumulator = 0;
             this.setGameState('ready');
-            this._logger.log('Starting main loop.');
-            this._mainLoop();
-            this._logger.log('Main loop started.');
-            this.setGameState('running');
             if (options?.fullScreen) this.fullScreen();
             await this._start();
             await this.onStart(this._resourceManager, this._soundLib);
+            this._logger.log('Starting main loop.');
+            this.setGameState('running');
+            this._mainLoop();
+            this._logger.log('Main loop started.');
             this._logger.log('Application started.');
         } catch (error) {
             throw `Failed to start application: ${error}`;
@@ -292,6 +311,6 @@ export abstract class GameApp<TResourceID extends string, TGameObjectID extends 
 
     protected abstract onInitialize(resourceManager: ResourceManager<TResourceID>): Promise<void>;
     protected abstract onDraw(ctx: CanvasRenderingContext2D): void;
-    protected abstract onUpdate(inputManager: InputManager): void;
+    protected abstract onUpdate(inputManager: InputManager, deltaTime: number): void;
     protected abstract onStart(resourceManager: ResourceManager<TResourceID>, soundLib: SoundLib): void;
 }

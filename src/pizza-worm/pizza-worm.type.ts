@@ -11,7 +11,6 @@ export namespace Types {
     };
 
     export type ResourceID =
-        | 'midi-file'
         | 'pizza-pepperoni'
         | 'pizza-mushrooms'
         | 'backdrop'

@@ -15,6 +15,7 @@ export type TPlayFreqOptions = {
 
 export class SoundLib {
   private audioContext: AudioContext;
+  private mediaSources = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
 
   constructor() {
     try {
@@ -25,8 +26,17 @@ export class SoundLib {
     }
   }
 
+  private resumeAudioContext(): void {
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume().catch((error) => {
+        logger.log('Failed to resume audio context.', error);
+      });
+    }
+  }
+
 
   public playFreq(options: TPlayFreqOptions) {
+    this.resumeAudioContext();
     const frequency = options.frequency;
     const duration = options.duration;
     const volume = options.volume !== undefined ? options.volume : 1;
@@ -57,16 +67,28 @@ export class SoundLib {
     filterNode.connect(delayNode);
     delayNode.connect(this.audioContext.destination);
 
+    oscillator.onended = () => {
+      oscillator.disconnect();
+      gainNode.disconnect();
+      filterNode.disconnect();
+      delayNode.disconnect();
+    };
+
     oscillator.start(this.audioContext.currentTime);
     oscillator.stop(this.audioContext.currentTime + duration);
   }
 
   public playSfx(audioElement: HTMLAudioElement, options?: TPlaySfxOptions) {
+    this.resumeAudioContext();
 
     logger.log('Playing sfx.', options);
     if (!audioElement) throw Error('Invalid audio element provided');
 
-    const track = this.audioContext.createMediaElementSource(audioElement);
+    let track = this.mediaSources.get(audioElement);
+    if (!track) {
+      track = this.audioContext.createMediaElementSource(audioElement);
+      this.mediaSources.set(audioElement, track);
+    }
     const gainNode = this.audioContext.createGain();
 
     if (options?.volume !== undefined) {
@@ -76,18 +98,10 @@ export class SoundLib {
     track.connect(gainNode);
     gainNode.connect(this.audioContext.destination);
 
-    if (options?.repeat) {
-      audioElement.loop = true;
-      audioElement.addEventListener('ended', function handler() {
-        if (options?.repeat) {
-          audioElement.loop = false;
-          audioElement.removeEventListener('ended', handler);
-        }
-      });
-    }
+    audioElement.loop = !!options?.repeat;
 
     audioElement.play().catch((error) => {
-      throw `Error playing audio element: ${error}`;
+      logger.log('Error playing audio element.', error);
     });
 
   }
