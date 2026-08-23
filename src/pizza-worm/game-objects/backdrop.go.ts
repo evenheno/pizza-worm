@@ -1,13 +1,12 @@
 import { Types } from "../pizza-worm.type";
-import { PizzaWorm } from "../pizza-worm.app";
 import { GameObject } from "../../core/game-object";
-import { ResourceManager } from '../../core';
+import { GameApp, ResourceManager } from '../../core';
 
 export class Backdrop extends GameObject<Types.ResourceID, Types.GameObjectID> {
 
     private sprite: HTMLImageElement;
 
-    public constructor(app: PizzaWorm) {
+    public constructor(app: GameApp<Types.ResourceID, Types.GameObjectID>) {
         super('Backdrop', app);
     }
     public override start(): void { }

@@ -16,6 +16,7 @@ export type TPlayFreqOptions = {
 export class SoundLib {
   private audioContext: AudioContext;
   private mediaSources = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
+  private mediaGains = new WeakMap<HTMLAudioElement, GainNode>();
 
   constructor() {
     try {
@@ -85,18 +86,20 @@ export class SoundLib {
     if (!audioElement) throw Error('Invalid audio element provided');
 
     let track = this.mediaSources.get(audioElement);
+    let gainNode = this.mediaGains.get(audioElement);
     if (!track) {
       track = this.audioContext.createMediaElementSource(audioElement);
       this.mediaSources.set(audioElement, track);
     }
-    const gainNode = this.audioContext.createGain();
-
-    if (options?.volume !== undefined) {
-      gainNode.gain.setValueAtTime(options.volume, this.audioContext.currentTime);
+    if (!gainNode) {
+      gainNode = this.audioContext.createGain();
+      track.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      this.mediaGains.set(audioElement, gainNode);
     }
 
-    track.connect(gainNode);
-    gainNode.connect(this.audioContext.destination);
+    const targetVolume = options?.volume !== undefined ? options.volume : 1;
+    gainNode.gain.setValueAtTime(targetVolume, this.audioContext.currentTime);
 
     audioElement.loop = !!options?.repeat;
 

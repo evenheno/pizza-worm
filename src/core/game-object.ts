@@ -21,9 +21,12 @@ export abstract class GameObject
     private _id: TGameObjectID;
     public enableUpdate: boolean;
 
-    //protected get app() { return this._app }
+    protected get app() { return this._app }
     protected get screen() { return this._app.screen }
     protected get soundLib() { return this._app.soundLib }
+    protected get audioManager() { return this._app.audioManager }
+    protected get spriteManager() { return this._app.spriteManager }
+    protected get cameraManager() { return this._app.cameraManager }
     protected get logger() { return this._logger }
     public get id() { return this._id }
 
@@ -41,7 +44,15 @@ export abstract class GameObject
         return this._components.get(component) as unknown as T;
     }
 
-    protected addComponent(componentRef: TComponent, instance: BaseComponent<TResourceID, TGameObjectID>) {
+    public tryGetComponent<T>(component: TComponent): T | undefined {
+        return this._components.get(component) as unknown as T | undefined;
+    }
+
+    public hasComponent(component: TComponent): boolean {
+        return this._components.has(component);
+    }
+
+    public addComponent<T extends BaseComponent<TResourceID, TGameObjectID>>(componentRef: TComponent, instance: T): T {
         this._components.set(componentRef, instance);
         instance.setContext(this);
         return instance;

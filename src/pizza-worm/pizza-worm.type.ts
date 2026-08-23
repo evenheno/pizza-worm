@@ -1,7 +1,10 @@
+import { CoreTypes } from "../core";
+
 export namespace Types {
 
     export type StartOptions = {
-        fullScreen: boolean
+        fullScreen?: boolean;
+        onResourceLoadProgress?: (progress: CoreTypes.TResourceLoadProgress<ResourceID>) => void;
     }
 
     export type WormSegment = {
@@ -11,10 +14,31 @@ export namespace Types {
     };
 
     export type ResourceID =
-        | 'pizza-pepperoni'
-        | 'pizza-mushrooms'
+        | `pizza-${string}`
         | 'backdrop'
         | 'background-music';
 
-    export type GameObjectID = 'Pizza' | 'Backdrop' | 'Worm';
+    export type GameObjectID =
+        | 'Pizza'
+        | 'PizzaParticles'
+        | 'Backdrop'
+        | 'Worm'
+        | 'LoadingBar'
+        | 'LoadingTitle'
+        | 'LoadingSubtitle'
+        | 'LoadingPercent'
+        | 'LoadingProgressLabel'
+        | 'LoadingTip'
+        | 'BtnSound'
+        | 'BtnMusic'
+        | 'BtnPause'
+        | 'BtnAbout'
+        | 'BtnRestart'
+        | 'BtnBack'
+        | 'AboutTitle'
+        | 'AboutVersion'
+        | 'AboutDetails'
+        | 'AboutAuthor'
+        | 'AboutLicense';
+    export type SceneID = 'loading' | 'gameplay' | 'about';
 }

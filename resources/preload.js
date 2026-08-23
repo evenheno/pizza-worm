@@ -27,13 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function run() {
     try {
-      setStatusMessage('Initializing..');
       const application = new PizzaWorm(container);
-      setStatusMessage('Starting application..');
       await application.start({ fullScreen: false });
-      setLoader(false);
       return application;
     } catch (error) {
+      setLoader(true);
       setLoaderAnim(false);
       setStatusMessage(`FATAL ERROR: ${error}`);
     }
@@ -42,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', async () => {
     if (instance) return;
     else instance = true;
+    setLoader(false);
     if (container.requestFullscreen) {
       container.requestFullscreen().catch((error) => {
         console.warn(`Failed to set full-screen: ${error}`);

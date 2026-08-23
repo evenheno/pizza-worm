@@ -1,6 +1,5 @@
 import { InputManager } from "../../core/input-manager";
-import { PizzaWorm } from "../pizza-worm.app";
-import { CoreTypes, ResourceManager } from "../../core";
+import { CoreTypes, GameApp, ResourceManager } from "../../core";
 import { Types } from "../pizza-worm.type";
 import { Constants } from "../pizza-worm.const";
 import { GameObject } from "../../core/game-object";
@@ -8,7 +7,6 @@ import { GameObject } from "../../core/game-object";
 export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
     private angle!: number;
     private length!: number;
-    private game: PizzaWorm;
     private colorIndex!: number;
     private turningLeft!: boolean;
     private turningRight!: boolean;
@@ -16,11 +14,10 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
 
     private onSelfCollision: () => void;
 
-    constructor(game: PizzaWorm, options: {
+    constructor(game: GameApp<Types.ResourceID, Types.GameObjectID>, options: {
         onSelfCollision: () => void
     }) {
         super('Worm', game);
-        this.game = game;
         this.onSelfCollision = options.onSelfCollision;
         this.reset();
     }
@@ -62,7 +59,7 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
             this.moveForward(frameScale);
             this.detectSelfCollision();
         } catch (error) {
-            throw Error(`Failed to update worm: ${error}}`);
+            throw Error(`Failed to update worm: ${error}`);
         }
     }
 
@@ -125,10 +122,11 @@ export class Worm extends GameObject<Types.ResourceID, Types.GameObjectID> {
         head.x += Math.cos(this.angle) * Constants.SPEED * frameScale;
         head.y += Math.sin(this.angle) * Constants.SPEED * frameScale;
 
-        this.segments.forEach(segment => {
+        for (let i = 0; i < this.segments.length; i++) {
+            const segment = this.segments[i];
             segment.x = segment.x < 0 ? this.screen.width : segment.x >= this.screen.width ? 0 : segment.x;
             segment.y = segment.y < 0 ? this.screen.height : segment.y >= this.screen.height ? 0 : segment.y;
-        });
+        }
     }
 
     public grow(size: number): void {
